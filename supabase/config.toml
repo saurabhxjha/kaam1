@@ -1,0 +1,34 @@
+project_id = "baipdmbxmlywavyxkjbf"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+major_version = 17
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:8080/**", "https://jodkaam-connect-local.lovable.app/**", "https://preview--jodkaam-connect-local.lovable.app/**"]
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.create-razorpay-order]
+verify_jwt = true
+
+[functions.razorpay-webhook]
+verify_jwt = false
+
+[functions.customer-portal]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false

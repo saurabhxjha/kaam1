@@ -1,0 +1,8 @@
+
+# Only ignore sensitive and build files
+.env
+.env.local
+.env.production
+node_modules
+.next
+dist
