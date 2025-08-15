@@ -106,133 +106,136 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ user, onEditProfile }) 
   const tasksRemaining = isPro ? 'Unlimited' : Math.max(0, 3 - profile.tasks_posted_this_month);
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-4 md:space-y-6">
-      {/* Header Card */}
-      <Card>
-        <CardHeader className="text-center">
-          <div className="flex flex-col items-center space-y-4">
-            <Avatar className="w-24 h-24">
+    <div className="w-full max-w-2xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8 space-y-6 md:space-y-8">
+      {/* Profile Header */}
+      <Card className="overflow-visible shadow-lg border-0 bg-gradient-to-br from-white to-blue-50">
+        <CardContent className="pt-8 pb-6 px-4 flex flex-col items-center relative">
+          <div className="relative w-28 h-28 mb-3">
+            <Avatar className="w-28 h-28 border-4 border-white shadow-lg">
               <AvatarImage src={profile.profile_image} />
-              <AvatarFallback className="text-lg">
+              <AvatarFallback className="text-2xl">
                 {profile.first_name?.[0]}{profile.last_name?.[0]}
               </AvatarFallback>
             </Avatar>
-            
-            <div className="space-y-2">
-              <CardTitle className="text-2xl">
-                {profile.first_name} {profile.last_name}
-              </CardTitle>
-              
-              <div className="flex items-center justify-center space-x-2">
-                <Badge variant={isPro ? "default" : "secondary"} className="flex items-center space-x-1">
-                  {isPro ? <Crown className="w-3 h-3" /> : <Star className="w-3 h-3" />}
-                  <span>{isPro ? 'Pro Member' : 'Free Member'}</span>
-                </Badge>
-                
-                {profile.profile_completed && (
-                  <Badge variant="outline" className="flex items-center space-x-1">
-                    <CheckCircle className="w-3 h-3 text-green-500" />
-                    <span>Verified</span>
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            <Button variant="outline" onClick={onEditProfile} className="flex items-center space-x-2">
-              <Edit className="w-4 h-4" />
-              <span>Edit Profile</span>
+            <Button
+              variant="outline"
+              onClick={onEditProfile}
+              className="absolute bottom-0 right-0 rounded-full p-2 bg-white border shadow hover:bg-blue-50"
+              size="icon"
+              aria-label="Edit Profile"
+            >
+              <Edit className="w-5 h-5 text-blue-600" />
             </Button>
           </div>
-        </CardHeader>
+          <CardTitle className="text-3xl font-bold text-gray-900 mb-1 text-center">
+            {profile.first_name} {profile.last_name}
+          </CardTitle>
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
+            <Badge variant={isPro ? "default" : "secondary"} className="flex items-center gap-1 px-3 py-1 text-base">
+              {isPro ? <Crown className="w-4 h-4" /> : <Star className="w-4 h-4" />}
+              <span>{isPro ? 'Pro Member' : 'Free Member'}</span>
+            </Badge>
+            {profile.profile_completed && (
+              <Badge variant="outline" className="flex items-center gap-1 border-green-400 text-green-700">
+                <CheckCircle className="w-4 h-4" />
+                <span>Verified</span>
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-        <CardContent className="space-y-6">
-          {/* Contact Information */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-3">
-              <Mail className="w-5 h-5 text-muted-foreground" />
+      {/* Contact & Info */}
+      <Card className="shadow border-0">
+        <CardContent className="py-6 px-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="flex items-center gap-3">
+              <Mail className="w-6 h-6 text-blue-400" />
               <div>
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{user.email}</p>
+                <p className="text-xs text-gray-500">Email</p>
+                <p className="font-medium text-base break-all">{user.email}</p>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <Phone className="w-5 h-5 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <Phone className="w-6 h-6 text-blue-400" />
               <div>
-                <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="font-medium">{profile.phone || 'Not provided'}</p>
+                <p className="text-xs text-gray-500">Phone</p>
+                <p className="font-medium text-base">{profile.phone || 'Not provided'}</p>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <MapPin className="w-5 h-5 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <MapPin className="w-6 h-6 text-blue-400" />
               <div>
-                <p className="text-sm text-muted-foreground">Location</p>
-                <p className="font-medium">
+                <p className="text-xs text-gray-500">Location</p>
+                <p className="font-medium text-base">
                   {profile.city ? `${profile.address}, ${profile.city}` : 'Not provided'}
                 </p>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-5 h-5 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <Calendar className="w-6 h-6 text-blue-400" />
               <div>
-                <p className="text-sm text-muted-foreground">Member Since</p>
-                <p className="font-medium">
+                <p className="text-xs text-gray-500">Member Since</p>
+                <p className="font-medium text-base">
                   {new Date(profile.created_at).toLocaleDateString()}
                 </p>
               </div>
             </div>
           </div>
-
-          {/* Bio */}
-          {profile.bio && (
-            <div>
-              <h3 className="font-semibold mb-2">About</h3>
-              <p className="text-muted-foreground">{profile.bio}</p>
-            </div>
-          )}
-
-          {/* Skills */}
-          {profile.skills && (
-            <div>
-              <h3 className="font-semibold mb-2">Skills</h3>
-              <p className="text-muted-foreground">{profile.skills}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {/* Subscription Status Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+      {/* About & Skills */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {profile.bio && (
+          <Card className="shadow border-0">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-semibold text-blue-700">About</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 whitespace-pre-line">{profile.bio}</p>
+            </CardContent>
+          </Card>
+        )}
+        {profile.skills && (
+          <Card className="shadow border-0">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-semibold text-blue-700">Skills</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 whitespace-pre-line">{profile.skills}</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Subscription Status */}
+      <Card className="shadow border-0">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-blue-700">
             {isPro ? <Crown className="w-5 h-5 text-yellow-500" /> : <Star className="w-5 h-5" />}
-            <span>Subscription Status</span>
+            <span>Subscription</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-primary">{tasksRemaining}</p>
-              <p className="text-sm text-muted-foreground">Tasks Remaining</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-2xl font-bold text-blue-700">{tasksRemaining}</p>
+              <p className="text-xs text-gray-500">Tasks Remaining</p>
             </div>
-            
-            <div className="text-center">
-              <p className="text-2xl font-bold">{isPro ? '10km' : '2km'}</p>
-              <p className="text-sm text-muted-foreground">Visibility Radius</p>
+            <div>
+              <p className="text-2xl font-bold text-blue-700">{isPro ? '10km' : '2km'}</p>
+              <p className="text-xs text-gray-500">Visibility Radius</p>
             </div>
-            
-            <div className="text-center">
-              <p className="text-2xl font-bold">{isPro ? 'High' : 'Normal'}</p>
-              <p className="text-sm text-muted-foreground">Priority Level</p>
+            <div>
+              <p className="text-2xl font-bold text-blue-700">{isPro ? 'High' : 'Normal'}</p>
+              <p className="text-xs text-gray-500">Priority Level</p>
             </div>
           </div>
-          
           {!isPro && (
-            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
+            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
               <h4 className="font-semibold text-sm mb-2">🚀 Upgrade to Pro</h4>
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-gray-600 mb-3">
                 Get unlimited task posting, wider reach, and priority placement for just ₹199/month
               </p>
               <Button size="sm" className="w-full" onClick={handleUpgradeClick}>
@@ -244,10 +247,7 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ user, onEditProfile }) 
       </Card>
 
       {/* Reviews Section */}
-      <ReviewsDisplay 
-        userId={user.id} 
-        className="mt-6"
-      />
+      <ReviewsDisplay userId={user.id} className="mt-6" />
     </div>
   );
 };
