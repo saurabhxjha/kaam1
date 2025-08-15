@@ -356,7 +356,7 @@ const UserDashboard: React.FC = () => {
       if (tasksError) {
         console.error('Error loading tasks:', tasksError);
       } else {
-        // Convert Supabase tasks to the expected format
+        // Convert Supabase tasks to the expected format, always include client_id
         const convertedTasks = (userTasks || []).map((task: any) => ({
           id: task.id,
           title: task.title,
@@ -370,6 +370,7 @@ const UserDashboard: React.FC = () => {
           status: task.status,
           assignedAt: task.assigned_at,
           completedAt: task.completed_at,
+          client_id: task.client_id, // ensure client_id is present
           clientName: 'You',
           clientRating: 5.0
         }));
@@ -471,24 +472,39 @@ const UserDashboard: React.FC = () => {
         console.error('Error loading assigned tasks:', assignedError);
         setAssignedTasks([]);
       } else {
-        // Convert assigned tasks to the expected format
-        const convertedAssignedTasks = (assignedTasksData || []).map((task: any) => ({
-          id: task.id,
-          title: task.title,
-          description: task.description,
-          category: task.category,
-          budgetMin: task.budget_min,
-          budgetMax: task.budget_max,
-          urgency: task.urgency,
-          locationAddress: task.location_address,
-          createdAt: task.created_at,
-          status: task.status,
-          assignedAt: task.assigned_at,
-          completedAt: task.completed_at,
-          clientName: 'Client',
-          clientRating: 4.5
-        }));
-
+        // Convert assigned tasks to the expected format, always include client_id and fetch clientName
+        const convertedAssignedTasks = await Promise.all(
+          (assignedTasksData || []).map(async (task: any) => {
+            let clientName = 'Client';
+            if (task.client_id) {
+              const { data: clientProfile } = await supabase
+                .from('user_profiles')
+                .select('first_name, last_name')
+                .eq('user_id', task.client_id)
+                .single();
+              if (clientProfile) {
+                clientName = `${clientProfile.first_name || ''} ${clientProfile.last_name || ''}`.trim() || 'Client';
+              }
+            }
+            return {
+              id: task.id,
+              title: task.title,
+              description: task.description,
+              category: task.category,
+              budgetMin: task.budget_min,
+              budgetMax: task.budget_max,
+              urgency: task.urgency,
+              locationAddress: task.location_address,
+              createdAt: task.created_at,
+              status: task.status,
+              assignedAt: task.assigned_at,
+              completedAt: task.completed_at,
+              client_id: task.client_id,
+              clientName,
+              clientRating: 4.5
+            };
+          })
+        );
         setAssignedTasks(convertedAssignedTasks);
       }
 

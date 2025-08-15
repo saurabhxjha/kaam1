@@ -50,9 +50,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         currentUserId: user.id
       });
       loadMessages();
-      // Set up real-time subscription
-      const subscription = supabase
-        .channel(`chat_${taskId}`)
+      // Use supabase-js v2 real-time subscription for instant updates
+      const channel = supabase.channel('public:chat_messages')
         .on(
           'postgres_changes',
           {
@@ -61,16 +60,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             table: 'chat_messages',
             filter: `task_id=eq.${taskId}`,
           },
-          (payload) => {
-            const newMsg = payload.new as Message;
-            setMessages((prev) => [...prev, newMsg]);
+          () => {
+            // Always reload all messages for this task on new insert
+            loadMessages();
             scrollToBottom();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            // On connect, reload messages for full sync
+            loadMessages();
+          }
+        });
 
       return () => {
-        subscription.unsubscribe();
+        channel.unsubscribe();
       };
     }
   }, [user, taskId]);
