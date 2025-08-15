@@ -261,9 +261,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
       console.log('=== MESSAGE SENT SUCCESSFULLY ===');
       console.log('Response data:', data);
+      if (data && data[0]) {
+        setMessages((prev) => [...prev, data[0]]);
+      }
       setNewMessage('');
-      // Instantly reload messages so chat updates without closing
-      loadMessages();
       toast({
         title: "Message Sent",
         description: "Your message has been delivered",
