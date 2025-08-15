@@ -249,11 +249,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onBid, showBidButton = true }
           </div>
         )}
 
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center justify-between pt-2 gap-2 flex-wrap">
           <span className="text-xs text-muted-foreground">
             Posted {new Date(task.createdAt).toLocaleDateString()}
           </span>
-          
+
+          {/* Bid button logic remains the same */}
           {showBidButton && task.status === 'open' && !hasAlreadyBid && (
             <Dialog open={showBidDialog} onOpenChange={setShowBidDialog}>
               <DialogTrigger asChild>
@@ -306,33 +307,22 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onBid, showBidButton = true }
               </DialogContent>
             </Dialog>
           )}
-          
-          {hasAlreadyBid && (
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" disabled>
-                <MessageSquare className="h-4 w-4 mr-1" />
-                Already Bid
-              </Button>
-              
-              {/* Chat button for bidders who already bid - but not if they're the task owner */}
-              {user?.id !== (task.client_id || task.clientId) && (
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => setShowChatWindow(true)}
-                >
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  Chat
-                </Button>
-              )}
-            </div>
-          )}
-          
-          {/* Chat for task owners - but only if there are bidders to chat with */}
-          {!showBidButton && user?.id === (task.client_id || task.clientId) && (
+
+          {/* Always show chat button for all users except task owner (for owner, show info) */}
+          {user?.id !== (task.client_id || task.clientId) ? (
             <Button 
               size="sm" 
               variant="outline"
+              onClick={() => setShowChatWindow(true)}
+            >
+              <MessageCircle className="h-4 w-4 mr-1" />
+              Chat
+            </Button>
+          ) : (
+            <Button 
+              size="sm" 
+              variant="outline"
+              disabled
               onClick={() => {
                 toast({
                   title: "Chat Unavailable",
@@ -340,7 +330,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onBid, showBidButton = true }
                   variant: "default",
                 });
               }}
-              disabled
             >
               <MessageCircle className="h-4 w-4 mr-1" />
               Chat with Workers

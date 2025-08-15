@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfileCheck } from "@/hooks/useProfileCheck";
 import TaskCard from "./TaskCard";
 import ChatWindow from "./ChatWindow";
+import PostTaskForm from "./PostTaskForm";
 
 interface Task {
   id: string;
@@ -48,6 +50,7 @@ interface Task {
   status: 'open' | 'assigned' | 'in_progress' | 'completed' | 'cancelled';
   assignedAt?: string;
   completedAt?: string;
+  client_id?: string; // Added for type safety
 }
 
 interface Bid {
@@ -60,6 +63,7 @@ interface Bid {
   createdAt: string;
   clientName: string;
   bidderId?: string;
+  bidderName?: string; // Added for type safety
 }
 
 interface TaskCompletion {
@@ -126,14 +130,29 @@ const TaskBidsSection: React.FC<{
         console.error('Error loading bids:', error);
         setBids([]);
       } else {
-        setBids(bidsData || []);
+        // Fetch bidder names for each bid
+        const bidsWithNames = await Promise.all((bidsData || []).map(async (bid) => {
+          let bidderName = '';
+          if (bid.worker_id) {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('first_name, last_name')
+              .eq('user_id', bid.worker_id)
+              .single();
+            if (profile) {
+              bidderName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+            }
+          }
+          return { ...bid, bidderName };
+        }));
+        setBids(bidsWithNames);
       }
     } catch (error) {
       console.error('Error loading bids:', error);
       setBids([]);
     } finally {
       setLoading(false);
-  }
+    }
   }
 
   if (bids.length === 0) {
@@ -164,7 +183,7 @@ const TaskBidsSection: React.FC<{
   <div key={bid.id} className="border rounded-lg p-4 bg-white shadow">
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <p className="font-medium text-sm">Bidder: {bid.worker_id}</p>
+              <p className="font-medium text-sm">Bidder: {bid.bidderName || bid.worker_id}</p>
               <p className="text-sm text-muted-foreground mb-2">{bid.message || 'No message'}</p>
               <p className="font-semibold text-green-600">₹{bid.bid_amount}</p>
               <p className="text-xs text-muted-foreground">
@@ -208,6 +227,8 @@ const TaskBidsSection: React.FC<{
 };
 
 const UserDashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const [showPostTaskForm, setShowPostTaskForm] = useState(false);
   // Unread chat message counts: key = `${taskId}_${userId}`
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   // ...existing code...
@@ -447,6 +468,48 @@ const UserDashboard: React.FC = () => {
       });
     }
 
+    // For each posted task, fetch its bids and store in taskBids
+    const bidsByTask: Record<string, Bid[]> = {};
+    for (const task of userTasks || []) {
+      const { data: bids, error: bidsError } = await supabase
+        .from('task_bids')
+        .select('*')
+        .eq('task_id', task.id)
+        .order('created_at', { ascending: false });
+      if (!bidsError && bids) {
+        // For each bid, fetch bidder name
+        const bidsWithNames = await Promise.all((bids || []).map(async (bid: any) => {
+          let bidderName = '';
+          if (bid.worker_id) {
+            const { data: bidderProfile } = await supabase
+              .from('user_profiles')
+              .select('first_name, last_name')
+              .eq('user_id', bid.worker_id)
+              .single();
+            if (bidderProfile) {
+              bidderName = `${bidderProfile.first_name || ''} ${bidderProfile.last_name || ''}`.trim();
+            }
+          }
+          return {
+            id: bid.id,
+            taskId: bid.task_id,
+            taskTitle: task.title || '',
+            bidAmount: bid.bid_amount,
+            message: bid.message || '',
+            status: bid.status,
+            createdAt: bid.created_at,
+            bidderId: bid.worker_id,
+            bidderName,
+            clientName: myProfileName
+          };
+        }));
+        bidsByTask[task.id] = bidsWithNames;
+      } else {
+        bidsByTask[task.id] = [];
+      }
+    }
+    setTaskBids(bidsByTask);
+
     // Load real bids from Supabase
     const { data: userBids, error: bidsError } = await supabase
       .from('task_bids')
@@ -459,6 +522,18 @@ const UserDashboard: React.FC = () => {
       setMyBids([]);
     } else {
       // Convert Supabase bids to the expected format
+      // Get your own profile name for use as bidderName
+      let myProfileName = 'You';
+      if (user) {
+        const { data: myProfile } = await supabase
+          .from('user_profiles')
+          .select('first_name, last_name')
+          .eq('user_id', user.id)
+          .single();
+        if (myProfile) {
+          myProfileName = `${myProfile.first_name || ''} ${myProfile.last_name || ''}`.trim() || 'You';
+        }
+      }
       const convertedBids = await Promise.all((userBids || []).map(async (bid: any) => {
         let clientName = 'Client';
         if (bid.tasks?.client_id) {
@@ -479,7 +554,8 @@ const UserDashboard: React.FC = () => {
           message: bid.message || '',
           status: bid.status,
           createdAt: bid.created_at,
-          clientName
+          clientName,
+          bidderName: myProfileName
         };
       }));
 
@@ -743,22 +819,29 @@ const UserDashboard: React.FC = () => {
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Tasks */}
+            {/* Recent Tasks Posted */}
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle>Recent Tasks Posted</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="grid gap-4">
                 {myTasks.slice(0, 3).map((task) => (
-                  <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <h4 className="font-medium">{task.title}</h4>
-                      <p className="text-sm text-muted-foreground">{task.locationAddress}</p>
+                  <div key={task.id} className="rounded-xl border bg-white shadow-sm p-4 flex flex-col gap-2 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-base text-gray-900">{task.title}</h4>
+                        <p className="text-xs text-gray-500">{task.locationAddress}</p>
+                      </div>
+                      <Badge className={getStatusColor(task.status)}>
+                        {getStatusIcon(task.status)}
+                        <span className="ml-1 capitalize">{task.status}</span>
+                      </Badge>
                     </div>
-                    <Badge className={getStatusColor(task.status)}>
-                      {getStatusIcon(task.status)}
-                      <span className="ml-1">{task.status}</span>
-                    </Badge>
+                    {taskBids[task.id]?.length > 0 && (
+                      <div className="mt-1 text-xs text-blue-700 font-medium">
+                        <span className="font-semibold">Bidder:</span> {taskBids[task.id][0].bidderName || taskBids[task.id][0].bidderId}
+                      </div>
+                    )}
                   </div>
                 ))}
                 {myTasks.length === 0 && (
@@ -769,27 +852,38 @@ const UserDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Recent Bids */}
+            {/* Recent Bids (received on your own tasks) */}
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle>Recent Bids</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {myBids.slice(0, 3).map((bid) => (
-                  <div key={bid.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <h4 className="font-medium">{bid.taskTitle}</h4>
-                      <p className="text-sm text-muted-foreground">₹{bid.bidAmount} • {bid.clientName}</p>
+              <CardContent className="grid gap-4 max-h-72 overflow-y-auto pr-2">
+                {Object.values(taskBids)
+                  .flat()
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .slice(0, 3)
+                  .map((bid) => (
+                    <div key={bid.id} className="rounded-xl border bg-white shadow-sm p-4 flex flex-col gap-2 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-base text-gray-900">{bid.taskTitle}</h4>
+                          <p className="text-xs text-blue-700 mt-1 font-medium">Bidder: {bid.bidderName || bid.bidderId}</p>
+                        </div>
+                        <Badge className={getStatusColor(bid.status)}>
+                          {getStatusIcon(bid.status)}
+                          <span className="ml-1 capitalize">{bid.status}</span>
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-sm text-muted-foreground font-semibold">₹{bid.bidAmount}</span>
+                        <span className="text-xs text-gray-500">{new Date(bid.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="text-xs text-gray-500">Status: {bid.status}</div>
                     </div>
-                    <Badge className={getStatusColor(bid.status)}>
-                      {getStatusIcon(bid.status)}
-                      <span className="ml-1">{bid.status}</span>
-                    </Badge>
-                  </div>
-                ))}
-                {myBids.length === 0 && (
+                  ))}
+                {Object.values(taskBids).flat().length === 0 && (
                   <p className="text-center text-muted-foreground py-4">
-                    No bids submitted yet
+                    No bids received yet
                   </p>
                 )}
               </CardContent>
@@ -800,7 +894,7 @@ const UserDashboard: React.FC = () => {
         <TabsContent value="my-tasks" className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">My Posted Tasks</h2>
-            <Button>Post New Task</Button>
+            <Button onClick={() => navigate('/browse')}>Post New Task</Button>
           </div>
           {myTasks.length > 0 ? (
             <div className="space-y-6">
@@ -826,10 +920,35 @@ const UserDashboard: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      <Badge className={getStatusColor(task.status)}>
-                        {getStatusIcon(task.status)}
-                        <span className="ml-1">{task.status}</span>
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getStatusColor(task.status)}>
+                          {getStatusIcon(task.status)}
+                          <span className="ml-1">{task.status}</span>
+                        </Badge>
+                        {/* Show delete icon if task is not assigned */}
+                        {task.status !== 'assigned' && (
+                          <button
+                            title="Delete Task"
+                            className="ml-2 p-1 rounded-full hover:bg-red-100 text-red-600 transition-colors"
+                            onClick={async () => {
+                              if (confirm('Are you sure you want to delete this task?')) {
+                                const { error } = await supabase
+                                  .from('tasks')
+                                  .delete()
+                                  .eq('id', task.id);
+                                if (!error) {
+                                  toast({ title: 'Task deleted', description: 'Your task has been deleted.' });
+                                  loadDashboardData();
+                                } else {
+                                  toast({ title: 'Error', description: 'Failed to delete task.', variant: 'destructive' });
+                                }
+                              }
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -843,99 +962,55 @@ const UserDashboard: React.FC = () => {
                       
                       {/* Simplified bid display with prominent buttons */}
                       {taskBids[task.id]?.length > 0 ? (
-                        <div className="space-y-3">
-                          {taskBids[task.id].map((bid) => (
-                            <div key={bid.id} className="border rounded-lg p-4 bg-white shadow">
-                              <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                  <p className="font-medium text-sm">Bidder: {bid.clientName || bid.bidderId}</p>
-                                  <p className="text-sm text-muted-foreground mb-2">{bid.message || 'No message'}</p>
-                                  <p className="font-semibold text-green-600">₹{bid.bidAmount}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {new Date(bid.createdAt).toLocaleDateString()}
-                                  </p>
+                        <>
+                          {/* Show chat button on the task card if any bid is assigned or accepted */}
+                          {(() => {
+                            const assignedBid = taskBids[task.id].find(bid => bid.status === 'accepted');
+                            if (assignedBid) {
+                              return (
+                                <div className="flex flex-col items-center mb-2">
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    className="w-full"
+                                    onClick={() => setChatTarget({
+                                      taskId: task.id,
+                                      userId: assignedBid.bidderId,
+                                      userName: assignedBid.bidderName || 'Bidder',
+                                      taskTitle: task.title
+                                    })}
+                                  >
+                                    <MessageCircle className="h-4 w-4 mr-1" />
+                                    Chat with Assigned Bidder
+                                  </Button>
                                 </div>
-                                <div className="flex items-center gap-2 ml-4">
-                                  <Badge className={getStatusColor(bid.status)}>
-                                    {getStatusIcon(bid.status)}
-                                    <span className="ml-1">{bid.status}</span>
-                                  </Badge>
-                                  
-                                  {/* Accept/reject buttons for pending bids */}
-                                  {bid.status === 'pending' && (
-                                    <div className="flex gap-2 ml-2">
-                                      <Button
-                                        size="sm"
-                                        className="bg-green-600 hover:bg-green-700 text-white"
-                                        onClick={() => handleAcceptBid(bid.id, task.id, bid.bidderId, bid.bidAmount)}
-                                      >
-                                        <CheckCircle className="h-4 w-4 mr-1" />
-                                        Accept
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="destructive"
-                                        onClick={() => handleRejectBid(bid.id, task.id, bid.bidderId)}
-                                      >
-                                        <XCircle className="h-4 w-4 mr-1" />
-                                        Reject
-                                      </Button>
-                                      <div className="flex flex-col items-center">
-                                        {unreadCounts[`${task.id}_${bid.bidderId}`] > 0 && (
-                                          <span className="mb-1 bg-red-600 text-white text-xs rounded-full px-2 py-0.5 min-w-[18px] text-center font-bold border border-white shadow">
-                                            {unreadCounts[`${task.id}_${bid.bidderId}`]}
-                                          </span>
-                                        )}
-                                        {/* DEBUG: Show unread count value always for troubleshooting */}
-                                        <span className="text-xs text-gray-400 mt-1">Unread: {unreadCounts[`${task.id}_${bid.bidderId}`]}</span>
-                                        {/* no stray parenthesis here */}
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          onClick={() => setChatTarget({
-                                            taskId: task.id,
-                                            userId: bid.bidderId,
-                                            userName: bid.clientName || 'Bidder',
-                                            taskTitle: task.title
-                                          })}
-                                        >
-                                          <MessageCircle className="h-4 w-4 mr-1" />
-                                          Chat
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
-                                  
-                                  {/* Chat button for accepted/rejected bids */}
-                                  {(bid.status === 'accepted' || bid.status === 'rejected') && (
-                                    <div className="flex gap-2 ml-2">
-                                      <div className="flex flex-col items-center">
-                                        {unreadCounts[`${task.id}_${bid.bidderId}`] > 0 && (
-                                          <span className="mb-1 bg-red-600 text-white text-xs rounded-full px-2 py-0.5 min-w-[18px] text-center font-bold border border-white shadow">
-                                            {unreadCounts[`${task.id}_${bid.bidderId}`]}
-                                          </span>
-                                        )}
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          onClick={() => setChatTarget({
-                                            taskId: task.id,
-                                            userId: bid.bidderId,
-                                            userName: bid.clientName || 'Bidder',
-                                            taskTitle: task.title
-                                          })}
-                                        >
-                                          <MessageCircle className="h-4 w-4 mr-1" />
-                                          Chat
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
+                              );
+                            }
+                            return null;
+                          })()}
+                          <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
+                            {taskBids[task.id].map((bid) => (
+                              <div key={bid.id} className="border rounded-lg p-4 bg-white shadow">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <p className="font-medium text-sm">Bidder: {bid.bidderName || bid.bidderId}</p>
+                                    <p className="text-sm text-muted-foreground mb-2">{bid.message || 'No message'}</p>
+                                    <p className="font-semibold text-green-600">₹{bid.bidAmount}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {new Date(bid.createdAt).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2 ml-4">
+                                    <Badge className={getStatusColor(bid.status)}>
+                                      {getStatusIcon(bid.status)}
+                                      <span className="ml-1">{bid.status}</span>
+                                    </Badge>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        </>
                       ) : (
                         <div className="text-center text-muted-foreground py-8 border rounded-lg">
                           <MessageSquare className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
@@ -956,7 +1031,22 @@ const UserDashboard: React.FC = () => {
                 <p className="text-muted-foreground mb-4">
                   Start by posting your first task to get help with your work.
                 </p>
-                <Button>Post Your First Task</Button>
+                <Button onClick={() => setShowPostTaskForm(true)}>Post Your First Task</Button>
+      {/* Post Task Modal */}
+      <Dialog open={showPostTaskForm} onOpenChange={setShowPostTaskForm}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Post a New Task</DialogTitle>
+          </DialogHeader>
+          <PostTaskForm 
+            onClose={() => setShowPostTaskForm(false)}
+            onTaskPosted={() => {
+              setShowPostTaskForm(false);
+              loadDashboardData();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
               </CardContent>
             </Card>
           )}
