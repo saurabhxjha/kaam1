@@ -84,7 +84,7 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ user, onEditProfile }) 
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+  <div className="p-4 md:p-6 w-full">
         <Card>
           <CardContent className="p-6">
             <div className="animate-pulse space-y-4">
@@ -106,7 +106,7 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ user, onEditProfile }) 
   const tasksRemaining = isPro ? 'Unlimited' : Math.max(0, 3 - profile.tasks_posted_this_month);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+  <div className="p-4 md:p-6 space-y-4 md:space-y-6 w-full">
       {/* Header Card */}
       <Card>
         <CardHeader className="text-center">

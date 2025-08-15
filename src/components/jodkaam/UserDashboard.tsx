@@ -418,7 +418,7 @@ const UserDashboard: React.FC = () => {
               taskTitle: '',
               bidAmount: bid.bid_amount,
               message: bid.message || '',
-              status: bid.status,
+              status: (bid.status as 'pending' | 'accepted' | 'rejected'),
               createdAt: bid.created_at,
               clientName: userProfile 
                 ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() 
@@ -550,7 +550,7 @@ const UserDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
+  <div className="py-4 md:py-6 space-y-4 md:space-y-6 w-full">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -592,7 +592,7 @@ const UserDashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">

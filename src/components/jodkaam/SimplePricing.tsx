@@ -225,13 +225,13 @@ function SimplifiedPricing() {
   };
 
   return (
-    <section id="pricing" className="py-16 md:py-24">
-      <div className="container">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple Pricing</h2>
-        <p className="text-muted-foreground mb-10 max-w-2xl">
+    <section id="pricing" className="py-12 md:py-24">
+  <div className="w-full">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-center md:text-left">Simple Pricing</h2>
+  <p className="text-muted-foreground mb-8 md:mb-10 text-center md:text-left">
           Start free. Upgrade to Pro for unlimited posting and wider visibility.
         </p>
-        <div className="grid md:grid-cols-2 gap-6">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <Card className="surface-card">
             <CardHeader>
               <CardTitle className="text-2xl">Free</CardTitle>

@@ -14,8 +14,8 @@ interface Message {
   task_id: string;
   sender_id: string;
   receiver_id: string;
-  content: string;
-  is_read: boolean;
+  message: string;
+  is_read?: boolean;
   created_at: string;
 }
 
@@ -91,10 +91,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       
       const { data, error } = await supabase
         .from('chat_messages')
-        .select('*')
-        .eq('task_id', taskId)
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .order('created_at', { ascending: true });
+  .select('*')
+  .eq('task_id', taskId)
+  .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+  .order('created_at', { ascending: true });
 
       if (error) {
         console.error('Error loading messages:', error);
@@ -115,7 +115,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       }
 
       console.log('Loaded messages:', data);
-      setMessages(data || []);
+  setMessages(data || []);
       
       // Mark messages as read
       if (data && data.length > 0) {
@@ -210,7 +210,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         task_id: taskId,
         sender_id: user.id,
         receiver_id: receiverId,
-        content: newMessage.trim(),
+        message: newMessage.trim(),
       };
       
       console.log('Inserting message data:', messageData);
@@ -357,7 +357,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                           : 'bg-muted'
                       }`}
                     >
-                      <p className="text-sm">{message.content}</p>
+                      <p className="text-sm">{message.message}</p>
                       <p className="text-xs opacity-70 mt-1">
                         {formatTime(message.created_at)}
                       </p>

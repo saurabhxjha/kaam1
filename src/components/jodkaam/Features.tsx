@@ -56,14 +56,14 @@ const Features: React.FC = () => {
     }
   };
   return (
-    <section id="features" className="py-16 md:py-24">
-      <div className="container">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">Core Features</h2>
-        <p className="text-muted-foreground mb-10 max-w-2xl">
+    <section id="features" className="py-12 md:py-24">
+  <div className="w-full">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-center md:text-left">Core Features</h2>
+  <p className="text-muted-foreground mb-8 md:mb-10 text-center md:text-left">
           Everything you need to connect local help with nearby tasks — fast,
           reliable, and secure.
         </p>
-        <div className="grid md:grid-cols-3 gap-6">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
           <FeatureCard
             icon={<MapPin className="text-foreground/80" />}
             title="Hyperlocal Browse"

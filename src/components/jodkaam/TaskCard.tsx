@@ -262,7 +262,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onBid, showBidButton = true }
                   Bid on Task
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="bg-white shadow-xl border border-gray-200">
                 <DialogHeader>
                   <DialogTitle>Submit Your Bid</DialogTitle>
                 </DialogHeader>
@@ -352,13 +352,16 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onBid, showBidButton = true }
       {/* Chat Window */}
       {showChatWindow && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <ChatWindow
-            taskId={task.id}
-            receiverId={task.client_id || task.clientId || "unknown"}
-            receiverName={task.clientName || "Client"}
-            taskTitle={task.title}
-            onClose={() => setShowChatWindow(false)}
-          />
+          <div className="bg-white shadow-xl border border-gray-200 rounded-xl max-w-lg w-full mx-2">
+            {/* ChatWindow content will be rendered here */}
+            <ChatWindow
+              taskId={task.id}
+              receiverId={task.client_id || task.clientId || "unknown"}
+              receiverName={task.clientName || "Client"}
+              taskTitle={task.title}
+              onClose={() => setShowChatWindow(false)}
+            />
+          </div>
         </div>
       )}
     </Card>

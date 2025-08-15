@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,11 +49,11 @@ const Navbar: React.FC = () => {
 
   return (
     <header className="w-full sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
-      <nav className="container flex items-center justify-between h-16">
+  <nav className="flex items-center justify-between h-16 overflow-x-auto whitespace-nowrap gap-2 px-2 sm:gap-3 sm:px-4">
         <a href="/" className="font-bold text-lg leading-none">
           <span className="text-gradient-primary">JodKaam</span>
         </a>
-        <div className="flex items-center gap-3">
+  <div className="hidden md:flex items-center gap-3">
           <Button variant="ghost" onClick={() => navigate("/", { state: { scrollTo: "features" } })}>
             Features
           </Button>
@@ -120,9 +122,53 @@ const Navbar: React.FC = () => {
             </Button>
           )}
         </div>
+        {/* Mobile Nav: Hamburger + Sheet */}
+        <div className="md:hidden flex items-center">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Open menu">
+                <Menu className="w-6 h-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side={undefined} className="p-0 w-[90vw] max-w-sm mx-auto rounded-xl mt-16 bg-white shadow-xl border border-gray-200">
+              <div className="flex flex-col gap-2 p-4">
+                <a href="/" className="font-bold text-lg mb-2">
+                  <span className="text-gradient-primary">JodKaam</span>
+                </a>
+                <Button variant="ghost" className="justify-start" onClick={() => { navigate("/", { state: { scrollTo: "features" } }); }}>
+                  Features
+                </Button>
+                <Button variant="ghost" className="justify-start" onClick={() => { navigate("/", { state: { scrollTo: "pricing" } }); }}>
+                  Pricing
+                </Button>
+                {user ? (
+                  <>
+                    <Button variant="ghost" asChild className="justify-start">
+                      <a href="/browse">Browse Tasks</a>
+                    </Button>
+                    <Button variant="ghost" asChild className="justify-start">
+                      <a href="/dashboard">Dashboard</a>
+                    </Button>
+                    <Button variant="ghost" asChild className="justify-start">
+                      <a href="/profile">Profile</a>
+                    </Button>
+                    <Button variant="ghost" className="justify-start" onClick={handleSignOut}>
+                      Sign out
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="outline" asChild className="justify-start">
+                    <a href="/auth">Sign In</a>
+                  </Button>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </nav>
     </header>
+
   );
-};
+}
 
 export default Navbar;
