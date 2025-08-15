@@ -206,9 +206,9 @@ const BrowseGigs: React.FC = () => {
   };
 
   return (
-  <div className="py-4 md:py-6 space-y-4 md:space-y-6 w-full">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+  <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-4 md:space-y-6">
+  {/* Header */}
+  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-1 sm:px-0">
         <div>
           <h1 className="text-3xl font-bold">Browse Nearby Gigs</h1>
           <p className="text-muted-foreground">
@@ -223,14 +223,38 @@ const BrowseGigs: React.FC = () => {
               Post a Task
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Post a New Task</DialogTitle>
-            </DialogHeader>
-            <PostTaskForm 
-              onClose={() => setShowPostDialog(false)}
-              onTaskPosted={handleTaskPosted}
-            />
+          <DialogContent
+            className="max-w-2xl w-full p-0 bg-transparent border-none shadow-none"
+            style={{
+              maxHeight: '80vh',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              overflow: 'visible',
+            }}
+          >
+            <div
+              className="w-full flex justify-center items-start"
+              style={{
+                width: '100%',
+                maxWidth: 600,
+                height: '100%',
+                maxHeight: '80vh',
+                minHeight: 0,
+                padding: 0,
+                margin: 0,
+                overflowY: 'auto',
+                borderRadius: 16,
+                background: 'white',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+              }}
+            >
+              <PostTaskForm 
+                onClose={() => setShowPostDialog(false)}
+                onTaskPosted={handleTaskPosted}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       </div>
@@ -238,7 +262,7 @@ const BrowseGigs: React.FC = () => {
       {/* Search and Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -328,7 +352,7 @@ const BrowseGigs: React.FC = () => {
 
       {/* Tasks Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader>
@@ -346,7 +370,7 @@ const BrowseGigs: React.FC = () => {
           ))}
         </div>
       ) : filteredTasks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredTasks.map((task) => (
             <TaskCard
               key={task.id}
@@ -357,21 +381,19 @@ const BrowseGigs: React.FC = () => {
           ))}
         </div>
       ) : (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Map className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No tasks found</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchQuery || selectedCategory !== "all" || selectedUrgency !== "all"
-                ? "Try adjusting your search filters or check back later."
-                : "No tasks available in your area right now. Check back later or post your own task!"}
-            </p>
-            <Button onClick={() => setShowPostDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Post the First Task
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="text-center py-8 sm:py-12 px-2">
+          <Map className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No tasks found</h3>
+          <p className="text-muted-foreground mb-4">
+            {searchQuery || selectedCategory !== "all" || selectedUrgency !== "all"
+              ? "Try adjusting your search filters or check back later."
+              : "No tasks available in your area right now. Check back later or post your own task!"}
+          </p>
+          <Button onClick={() => setShowPostDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Post the First Task
+          </Button>
+        </div>
       )}
     </div>
   );

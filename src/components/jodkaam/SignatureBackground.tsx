@@ -14,7 +14,7 @@ const SignatureBackground: React.FC<SignatureBackgroundProps> = ({ children }) =
   };
 
   return (
-    <div className="spotlight" onMouseMove={onMove}>
+    <div className="spotlight min-h-screen flex flex-col" onMouseMove={onMove}>
       {children}
     </div>
   );

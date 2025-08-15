@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
+
 import { Menu } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -12,11 +13,53 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationsList } from "./NotificationsList";
 
+function MobileDrawerContent({ user, navigate, handleSignOut, onDrawerClose }: { user: any, navigate: any, handleSignOut: any, onDrawerClose: () => void }) {
+  return (
+    <SheetContent side={undefined} className="p-0 w-[90vw] max-w-sm mx-auto rounded-xl mt-16 bg-white shadow-xl border border-gray-200 max-h-[80vh] overflow-y-auto">
+      <div className="flex flex-col gap-2 p-4">
+        <a href="/" className="font-bold text-lg mb-2" onClick={onDrawerClose}>
+          <span className="text-gradient-primary">JodKaam</span>
+        </a>
+        <Button variant="ghost" className="justify-start" onClick={() => { navigate("/"); onDrawerClose(); }}>
+          Home
+        </Button>
+        <Button variant="ghost" className="justify-start" onClick={() => { navigate("/", { state: { scrollTo: "features" } }); onDrawerClose(); }}>
+          Features
+        </Button>
+        <Button variant="ghost" className="justify-start" onClick={() => { navigate("/", { state: { scrollTo: "pricing" } }); onDrawerClose(); }}>
+          Pricing
+        </Button>
+        {user ? (
+          <>
+            <Button variant="ghost" asChild className="justify-start" onClick={onDrawerClose}>
+              <a href="/browse">Browse Tasks</a>
+            </Button>
+            <Button variant="ghost" asChild className="justify-start" onClick={onDrawerClose}>
+              <a href="/dashboard">Dashboard</a>
+            </Button>
+            <Button variant="ghost" asChild className="justify-start" onClick={onDrawerClose}>
+              <a href="/profile">Profile</a>
+            </Button>
+            <Button variant="ghost" className="justify-start" onClick={() => { handleSignOut(); onDrawerClose(); }}>
+              Sign out
+            </Button>
+          </>
+        ) : (
+          <Button variant="outline" asChild className="justify-start" onClick={onDrawerClose}>
+            <a href="/auth">Sign In</a>
+          </Button>
+        )}
+      </div>
+    </SheetContent>
+  );
+}
+
 const Navbar: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -45,15 +88,20 @@ const Navbar: React.FC = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+    setDrawerOpen(false);
   };
+
+  // Pass this to MobileDrawerContent so it can close the drawer
+  const handleDrawerClose = () => setDrawerOpen(false);
 
   return (
     <header className="w-full sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
-  <nav className="flex items-center justify-between h-16 overflow-x-auto whitespace-nowrap gap-2 px-2 sm:gap-3 sm:px-4">
+      <nav className="flex items-center justify-between h-16 overflow-x-auto whitespace-nowrap gap-2 px-2 sm:gap-3 sm:px-4">
         <a href="/" className="font-bold text-lg leading-none">
           <span className="text-gradient-primary">JodKaam</span>
         </a>
-  <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3">
+          <Button variant="ghost" onClick={() => navigate("/")}>Home</Button>
           <Button variant="ghost" onClick={() => navigate("/", { state: { scrollTo: "features" } })}>
             Features
           </Button>
@@ -68,7 +116,6 @@ const Navbar: React.FC = () => {
               <Button variant="ghost" asChild>
                 <a href="/dashboard">Dashboard</a>
               </Button>
-              
               {/* Notifications - moved to side */}
               <Popover>
                 <PopoverTrigger asChild>
@@ -88,7 +135,6 @@ const Navbar: React.FC = () => {
                   <NotificationsList className="border-0 shadow-none" />
                 </PopoverContent>
               </Popover>
-
               {/* Profile Dropdown with Sign Out */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -122,49 +168,38 @@ const Navbar: React.FC = () => {
             </Button>
           )}
         </div>
-        {/* Mobile Nav: Hamburger + Sheet */}
-        <div className="md:hidden flex items-center">
-          <Sheet>
+        {/* Mobile Nav: Bell + Hamburger */}
+        <div className="md:hidden flex items-center gap-2">
+          {user && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+                  <Bell className="w-6 h-6" />
+                  {unreadCount > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="absolute -top-1 -right-1 w-5 h-5 text-xs flex items-center justify-center p-0"
+                    >
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0">
+                <NotificationsList className="border-0 shadow-none" />
+              </PopoverContent>
+            </Popover>
+          )}
+          <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Open menu">
                 <Menu className="w-6 h-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side={undefined} className="p-0 w-[90vw] max-w-sm mx-auto rounded-xl mt-16 bg-white shadow-xl border border-gray-200">
-              <div className="flex flex-col gap-2 p-4">
-                <a href="/" className="font-bold text-lg mb-2">
-                  <span className="text-gradient-primary">JodKaam</span>
-                </a>
-                <Button variant="ghost" className="justify-start" onClick={() => { navigate("/", { state: { scrollTo: "features" } }); }}>
-                  Features
-                </Button>
-                <Button variant="ghost" className="justify-start" onClick={() => { navigate("/", { state: { scrollTo: "pricing" } }); }}>
-                  Pricing
-                </Button>
-                {user ? (
-                  <>
-                    <Button variant="ghost" asChild className="justify-start">
-                      <a href="/browse">Browse Tasks</a>
-                    </Button>
-                    <Button variant="ghost" asChild className="justify-start">
-                      <a href="/dashboard">Dashboard</a>
-                    </Button>
-                    <Button variant="ghost" asChild className="justify-start">
-                      <a href="/profile">Profile</a>
-                    </Button>
-                    <Button variant="ghost" className="justify-start" onClick={handleSignOut}>
-                      Sign out
-                    </Button>
-                  </>
-                ) : (
-                  <Button variant="outline" asChild className="justify-start">
-                    <a href="/auth">Sign In</a>
-                  </Button>
-                )}
-              </div>
-            </SheetContent>
+            <MobileDrawerContent user={user} navigate={navigate} handleSignOut={handleSignOut} onDrawerClose={handleDrawerClose} />
           </Sheet>
         </div>
+
       </nav>
     </header>
 

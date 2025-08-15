@@ -12,7 +12,7 @@ const FeatureCard: React.FC<{
   description: string;
   actionButton?: React.ReactNode;
 }> = ({ icon, title, description, actionButton }) => (
-  <Card className="surface-card transition-transform duration-200 hover:-translate-y-1">
+  <Card className="bg-white rounded-2xl shadow-lg border-0 transition-transform duration-200 hover:-translate-y-1">
     <CardHeader>
       <CardTitle className="flex items-center gap-3 text-xl">
         {icon}
@@ -56,33 +56,42 @@ const Features: React.FC = () => {
     }
   };
   return (
-    <section id="features" className="py-12 md:py-24">
-  <div className="w-full">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-center md:text-left">Core Features</h2>
-  <p className="text-muted-foreground mb-8 md:mb-10 text-center md:text-left">
-          Everything you need to connect local help with nearby tasks — fast,
-          reliable, and secure.
+    <section id="features" className="py-16 md:py-28 bg-gray-50 border-t border-b border-gray-100">
+      <div className="w-full max-w-6xl mx-auto px-4">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 text-center text-gray-900">Core Features</h2>
+        <p className="text-lg md:text-xl text-gray-600 mb-12 text-center max-w-2xl mx-auto">
+          Everything you need to connect local help with nearby tasks — fast, reliable, and secure.
         </p>
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           <FeatureCard
-            icon={<MapPin className="text-foreground/80" />}
+            icon={<span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 text-blue-600 text-3xl shadow-md"><MapPin /></span>}
             title="Hyperlocal Browse"
             description="See gigs around you with precise radius control. Pro users get wider visibility."
             actionButton={
-              <Button onClick={handleBrowseGigs} variant="outline" size="sm">
+              <Button onClick={handleBrowseGigs} variant="outline" size="sm" className="rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold">
                 Browse Gigs
               </Button>
             }
           />
           <FeatureCard
-            icon={<MessageSquare className="text-foreground/80" />}
+            icon={<span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100 text-green-600 text-3xl shadow-md"><MessageSquare /></span>}
             title="In-app Chat"
             description="Once matched, chat securely to align on details and timelines."
+            actionButton={
+              <Button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} variant="outline" size="sm" className="rounded-full bg-green-50 text-green-700 hover:bg-green-100 font-semibold">
+                Try Chat
+              </Button>
+            }
           />
           <FeatureCard
-            icon={<Bell className="text-foreground/80" />}
+            icon={<span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-yellow-100 text-yellow-600 text-3xl shadow-md"><Bell /></span>}
             title="Instant Notifications"
             description="Stay updated with new tasks, bids, and messages in real time."
+            actionButton={
+              <Button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} variant="outline" size="sm" className="rounded-full bg-yellow-50 text-yellow-700 hover:bg-yellow-100 font-semibold">
+                See Alerts
+              </Button>
+            }
           />
         </div>
       </div>

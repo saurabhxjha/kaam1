@@ -200,7 +200,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onBid, showBidButton = true }
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+  <Card className="bg-white shadow hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="flex-1">

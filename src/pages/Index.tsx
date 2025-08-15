@@ -4,8 +4,10 @@ import { toast } from "@/hooks/use-toast";
 import SignatureBackground from "@/components/jodkaam/SignatureBackground";
 // import Navbar from "@/components/jodkaam/Navbar";
 import Hero from "@/components/jodkaam/Hero";
+import TrustElements from "@/components/jodkaam/TrustElements";
 import Features from "@/components/jodkaam/Features";
 import SimplifiedPricing from "@/components/jodkaam/SimplePricing";
+import CallToAction from "@/components/jodkaam/CallToAction";
 import Footer from "@/components/jodkaam/Footer";
 
 const Index: React.FC = () => {
@@ -81,16 +83,20 @@ const Index: React.FC = () => {
 
   return (
     <SignatureBackground>
-      <main>
-        <Hero />
-        <div id="features">
-          <Features />
-        </div>
-        <div id="pricing">
-          <SimplifiedPricing />
-        </div>
-      </main>
-      <Footer />
+      <div className="min-h-screen flex flex-col">
+        <main className="flex-1">
+          <Hero />
+          <TrustElements />
+          <div id="features">
+            <Features />
+          </div>
+          <div id="pricing">
+            <SimplifiedPricing />
+          </div>
+          <CallToAction />
+        </main>
+        <Footer />
+      </div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}

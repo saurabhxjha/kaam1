@@ -10,7 +10,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
-
 interface TaskFormData {
   title: string;
   description: string;
@@ -299,15 +298,12 @@ const PostTaskForm: React.FC<{ onClose?: () => void; onTaskPosted?: () => void }
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Tag className="h-5 w-5" />
-          Post a New Task
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+  <div className="w-full max-w-2xl mx-auto bg-white !bg-opacity-100 shadow border border-gray-200 rounded-xl p-6">
+    <div className="flex items-center gap-2 mb-6">
+      <Tag className="h-5 w-5" />
+      <span className="text-xl font-semibold">Post a New Task</span>
+    </div>
+  <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title">Task Title</Label>
@@ -318,7 +314,6 @@ const PostTaskForm: React.FC<{ onClose?: () => void; onTaskPosted?: () => void }
               onChange={(e) => handleInputChange("title", e.target.value)}
             />
           </div>
-
           {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
@@ -426,9 +421,8 @@ const PostTaskForm: React.FC<{ onClose?: () => void; onTaskPosted?: () => void }
               </Button>
             )}
           </div>
-        </form>
-      </CardContent>
-    </Card>
+    </form>
+  </div>
   );
 };
 

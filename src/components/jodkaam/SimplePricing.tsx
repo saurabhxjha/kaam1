@@ -225,20 +225,20 @@ function SimplifiedPricing() {
   };
 
   return (
-    <section id="pricing" className="py-12 md:py-24">
-  <div className="w-full">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-center md:text-left">Simple Pricing</h2>
-  <p className="text-muted-foreground mb-8 md:mb-10 text-center md:text-left">
+    <section id="pricing" className="py-16 md:py-28 bg-gray-50 border-b border-gray-100">
+      <div className="w-full max-w-4xl mx-auto px-4">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 text-center text-gray-900">Simple Pricing</h2>
+        <p className="text-lg md:text-xl text-gray-600 mb-12 text-center mx-auto max-w-xl">
           Start free. Upgrade to Pro for unlimited posting and wider visibility.
         </p>
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <Card className="surface-card">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Card className="bg-white rounded-2xl shadow-md border border-gray-100">
             <CardHeader>
-              <CardTitle className="text-2xl">Free</CardTitle>
+              <CardTitle className="text-2xl font-bold">Free</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-4xl font-extrabold tracking-tight">₹0</div>
-              <ul className="space-y-2 text-muted-foreground">
+              <ul className="space-y-2 text-gray-600">
                 <ListItem>Post up to 3 tasks/month</ListItem>
                 <ListItem>Local radius visibility (1–2 km)</ListItem>
                 <ListItem>Secure in-app chat</ListItem>
@@ -256,23 +256,23 @@ function SimplifiedPricing() {
                 variant="outline" 
                 size="lg"
                 disabled={!user || !profileCompleted}
-                className="w-full"
+                className="w-full font-semibold"
               >
                 {!user ? "Sign In Required" : !profileCompleted ? "Complete Profile" : "Current Plan"}
               </Button>
             </CardFooter>
           </Card>
 
-          <Card className={`surface-card border-2 ${isProUser ? 'border-green-500 bg-green-50' : 'border-ring'}`}>
+          <Card className={`bg-white rounded-2xl shadow-md border-2 ${isProUser ? 'border-green-500 bg-green-50' : 'border-blue-200'}`}>
             <CardHeader>
-              <CardTitle className="text-2xl flex items-center justify-between">
+              <CardTitle className="text-2xl font-bold flex items-center justify-between">
                 Pro
                 {isProUser && <span className="text-sm bg-green-500 text-white px-2 py-1 rounded">Active</span>}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-4xl font-extrabold tracking-tight">₹199/mo</div>
-              <ul className="space-y-2 text-muted-foreground">
+              <ul className="space-y-2 text-gray-600">
                 <ListItem>Unlimited task posting</ListItem>
                 <ListItem>Wider visibility up to 10 km</ListItem>
                 <ListItem>Priority placement</ListItem>
@@ -291,7 +291,7 @@ function SimplifiedPricing() {
                 size="lg" 
                 onClick={handleUpgradeToPro}
                 disabled={loading || isProUser || !user || !profileCompleted}
-                className="w-full"
+                className="w-full font-semibold"
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {loading ? "Processing..." : 

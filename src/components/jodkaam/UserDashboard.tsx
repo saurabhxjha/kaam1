@@ -85,6 +85,31 @@ const TaskBidsSection: React.FC<{
   const [bids, setBids] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Optimistic update handlers
+  const handleAcceptLocal = (bidId: string, taskId: string, bidderId: string, bidAmount: number) => {
+    setBids((prevBids) =>
+      prevBids.map((bid) => {
+        const bidTaskId = bid.task_id || bid.taskId;
+        if (bid.id === bidId) {
+          return { ...bid, status: 'accepted' };
+        } else if (bidTaskId === taskId && bid.id !== bidId) {
+          return { ...bid, status: 'rejected' };
+        } else {
+          return bid;
+        }
+      })
+    );
+    onAccept(bidId, taskId, bidderId, bidAmount);
+  };
+  const handleRejectLocal = (bidId: string, taskId: string, bidderId: string) => {
+    setBids((prevBids) =>
+      prevBids.map((bid) =>
+        bid.id === bidId ? { ...bid, status: 'rejected' } : bid
+      )
+    );
+    onReject(bidId, taskId, bidderId);
+  };
+
   useEffect(() => {
     loadBids();
   }, [taskId]);
@@ -138,7 +163,7 @@ const TaskBidsSection: React.FC<{
   return (
     <div className="space-y-3">
       {bids.map((bid) => (
-        <div key={bid.id} className="border rounded-lg p-4 bg-gray-50">
+  <div key={bid.id} className="border rounded-lg p-4 bg-white shadow">
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <p className="font-medium text-sm">Bidder: {bid.worker_id}</p>
@@ -151,7 +176,7 @@ const TaskBidsSection: React.FC<{
             <div className="flex items-center gap-2 ml-4">
               <Badge className={getStatusColor(bid.status)}>
                 {getStatusIcon(bid.status)}
-                <span className="ml-1">{bid.status}</span>
+                <span className="ml-1">{bid.status.charAt(0).toUpperCase() + bid.status.slice(1)}</span>
               </Badge>
               
               {bid.status === 'pending' && (
@@ -160,7 +185,7 @@ const TaskBidsSection: React.FC<{
                     size="sm"
                     variant="outline"
                     className="text-green-600 border-green-600 hover:bg-green-50"
-                    onClick={() => onAccept(bid.id, taskId, bid.worker_id, bid.bid_amount)}
+                    onClick={() => handleAcceptLocal(bid.id, taskId, bid.worker_id, bid.bid_amount)}
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Accept
@@ -169,7 +194,7 @@ const TaskBidsSection: React.FC<{
                     size="sm"
                     variant="outline"
                     className="text-red-600 border-red-600 hover:bg-red-50"
-                    onClick={() => onReject(bid.id, taskId, bid.worker_id)}
+                    onClick={() => handleRejectLocal(bid.id, taskId, bid.worker_id)}
                   >
                     <XCircle className="h-4 w-4 mr-1" />
                     Reject
@@ -550,10 +575,10 @@ const UserDashboard: React.FC = () => {
 
   if (loading) {
     return (
-  <div className="py-4 md:py-6 space-y-4 md:space-y-6 w-full">
+      <div className="py-4 md:py-6 space-y-4 md:space-y-6 w-full">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-32 bg-gray-200 rounded"></div>
             ))}
@@ -565,7 +590,7 @@ const UserDashboard: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -592,7 +617,7 @@ const UserDashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4">
+  <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 mb-6">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -779,7 +804,7 @@ const UserDashboard: React.FC = () => {
                       {taskBids[task.id]?.length > 0 ? (
                         <div className="space-y-3">
                           {taskBids[task.id].map((bid) => (
-                            <div key={bid.id} className="border rounded-lg p-4 bg-gray-50">
+                            <div key={bid.id} className="border rounded-lg p-4 bg-white shadow">
                               <div className="flex justify-between items-start">
                                 <div className="flex-1">
                                   <p className="font-medium text-sm">Bidder: {bid.clientName || bid.bidderId}</p>

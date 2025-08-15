@@ -12,7 +12,7 @@ major_version = 17
 
 [auth]
 site_url = "http://localhost:3000"
-additional_redirect_urls = ["http://localhost:8080/**", "https://jodkaam-connect-local.lovable.app/**", "https://preview--jodkaam-connect-local.lovable.app/**"]
+additional_redirect_urls = ["http://localhost:8080/**"]
 
 [auth.email]
 enable_signup = true

@@ -40,34 +40,50 @@ const Hero: React.FC = () => {
   };
 
   return (
-    <section className="relative">
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-10 items-center py-6 md:py-24 w-full">
+    <section className="relative flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center py-12 md:py-20 w-full max-w-7xl mx-auto px-4">
         <div className="order-2 md:order-1">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-center md:text-left">
-            JodKaam — Hyperlocal Tasks & Gigs Near You
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 text-center md:text-left text-gray-900">
+            JodKaam <span className="text-blue-600">— Hyperlocal Tasks & Gigs Near You</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 text-center md:text-left">
-            Post small tasks or find nearby gigs in minutes. Chat securely, get
-            instant notifications, and grow with our Pro plan.
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-6 text-center md:text-left max-w-xl">
+            Post small tasks or find nearby gigs in minutes. Chat securely, get instant notifications, and grow with our Pro plan.
           </p>
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center md:justify-start" id="get-started">
-            <Button variant="hero" size="lg" onClick={handlePostTask}>
+          <div className="flex justify-center md:justify-start mb-4">
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full font-semibold text-sm shadow-sm">
+              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z" clipRule="evenodd" /></svg>
+              Trusted by 10,000+ users
+            </span>
+          </div>
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center md:justify-start" id="get-started">
+            <Button variant="hero" size="lg" onClick={handlePostTask} className="font-bold px-8 py-4">
               Post a Task
             </Button>
-            <Button variant="secondary" size="lg" onClick={handleBrowseGigs}>
+            <Button variant="secondary" size="lg" onClick={handleBrowseGigs} className="font-bold px-8 py-4">
               Browse Nearby Gigs
             </Button>
           </div>
         </div>
         <div className="relative order-1 md:order-2 mb-8 md:mb-0 flex justify-center">
-          <img
-            src={heroImage}
-            alt="JodKaam hyperlocal tasks illustration with map pins and community"
-            className="w-full h-auto rounded-xl border shadow-soft"
-            decoding="async"
-          />
+          <div className="w-full max-w-md animate-float">
+            <img
+              src={heroImage}
+              alt="JodKaam hyperlocal tasks illustration with map pins and community"
+              className="w-full h-auto rounded-2xl border shadow-lg"
+              decoding="async"
+            />
+          </div>
         </div>
       </div>
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-16px); }
+        }
+        .animate-float {
+          animation: float 4s ease-in-out infinite;
+        }
+      `}</style>
     </section>
   );
 };

@@ -262,7 +262,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       console.log('=== MESSAGE SENT SUCCESSFULLY ===');
       console.log('Response data:', data);
       setNewMessage('');
-      
+      // Instantly reload messages so chat updates without closing
+      loadMessages();
       toast({
         title: "Message Sent",
         description: "Your message has been delivered",
@@ -296,7 +297,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   if (loading) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+  <Card className="w-full max-w-md mx-auto bg-white shadow-xl border border-gray-200">
         <CardContent className="p-6">
           <div className="text-center">Loading chat...</div>
         </CardContent>
@@ -305,7 +306,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto h-96">
+  <Card className="w-full max-w-md mx-auto h-96 bg-white shadow-xl border border-gray-200">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
           <CardTitle className="text-lg">{receiverName}</CardTitle>
