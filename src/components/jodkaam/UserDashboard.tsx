@@ -133,10 +133,8 @@ const TaskBidsSection: React.FC<{
       setBids([]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  if (loading) return <p>Loading bids...</p>;
+  }
+  }
 
   if (bids.length === 0) {
     return <p className="text-center text-muted-foreground py-4 border rounded-lg">No bids received yet</p>;
@@ -210,6 +208,15 @@ const TaskBidsSection: React.FC<{
 };
 
 const UserDashboard: React.FC = () => {
+  // Unread chat message counts: key = `${taskId}_${userId}`
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  // ...existing code...
+  // The function body is correct, but ensure the return type is JSX.Element
+  // ...existing code...
+  // The return statement must return JSX.Element, which it does.
+  // No code change needed in the body, just ensure the return type is correct.
+  // If the error persists, explicitly type the return value:
+  // return (<div>...</div>);
   const { user } = useAuth();
   const { profile, tasksRemaining } = useProfileCheck(user);
   const [myTasks, setMyTasks] = useState<Task[]>([]);
@@ -238,9 +245,53 @@ const UserDashboard: React.FC = () => {
     completedTasks: 0
   });
 
+
   useEffect(() => {
     loadDashboardData();
+    fetchAllUnreadCounts();
+    // Optionally, poll unread counts every 10s
+    // const interval = setInterval(fetchAllUnreadCounts, 10000);
+    // return () => clearInterval(interval);
   }, []);
+
+  // Fetch unread counts for all relevant chats (for all posted tasks and bids)
+  const fetchAllUnreadCounts = async () => {
+    if (!user) return;
+    const newCounts: Record<string, number> = {};
+    // For tasks you posted (bids from workers)
+    for (const task of myTasks) {
+      if (task.id) {
+        // All bids for this task
+        const bids = taskBids[task.id] || [];
+        for (const bid of bids) {
+          if (bid.bidderId) {
+            const count = await getUnreadCount(task.id, user.id, bid.bidderId);
+            newCounts[`${task.id}_${bid.bidderId}`] = count;
+          }
+        }
+      }
+    }
+    // For tasks you are working on (messages from client)
+    for (const task of assignedTasks) {
+      if (task.id && task.client_id) {
+        const count = await getUnreadCount(task.id, user.id, task.client_id);
+        newCounts[`${task.id}_${task.client_id}`] = count;
+      }
+    }
+    setUnreadCounts(newCounts);
+  };
+
+  // Get unread count for a chat (taskId, receiverId = current user, senderId = other)
+  const getUnreadCount = async (taskId: string, receiverId: string, senderId: string) => {
+    const { count, error } = await supabase
+      .from('chat_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('task_id', taskId)
+      .eq('receiver_id', receiverId)
+      .eq('sender_id', senderId)
+      .eq('is_read', false);
+    return count || 0;
+  };
 
   const handleAcceptBid = async (bidId: string, taskId: string, bidderId: string, bidAmount: number) => {
     try {
@@ -342,65 +393,85 @@ const UserDashboard: React.FC = () => {
   };
 
   const loadDashboardData = async () => {
-    setLoading(true);
-    try {
-      if (!user) return;
+  setLoading(true);
+  try {
+    if (!user) return;
 
-      // Load real tasks from Supabase
-      const { data: userTasks, error: tasksError } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('client_id', user.id)
-        .order('created_at', { ascending: false });
+    // Load real tasks from Supabase
+    const { data: userTasks, error: tasksError } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('client_id', user.id)
+      .order('created_at', { ascending: false });
 
-      if (tasksError) {
-        console.error('Error loading tasks:', tasksError);
-      } else {
-        // Convert Supabase tasks to the expected format, always include client_id
-        const convertedTasks = (userTasks || []).map((task: any) => ({
-          id: task.id,
-          title: task.title,
-          description: task.description,
-          category: task.category,
-          budgetMin: task.budget_min,
-          budgetMax: task.budget_max,
-          urgency: task.urgency,
-          locationAddress: task.location_address,
-          createdAt: task.created_at,
-          status: task.status,
-          assignedAt: task.assigned_at,
-          completedAt: task.completed_at,
-          client_id: task.client_id, // ensure client_id is present
-          clientName: 'You',
-          clientRating: 5.0
-        }));
-
-        setMyTasks(convertedTasks);
-        
-        // Calculate real stats
-        setRealStats({
-          totalTasksPosted: convertedTasks.length,
-          activeTasks: convertedTasks.filter(t => ['open', 'assigned', 'in_progress'].includes(t.status)).length,
-          completedTasks: convertedTasks.filter(t => t.status === 'completed').length
-        });
+    let myProfileName = 'You';
+    if (user) {
+      const { data: myProfile } = await supabase
+        .from('user_profiles')
+        .select('first_name, last_name')
+        .eq('user_id', user.id)
+        .single();
+      if (myProfile) {
+        myProfileName = `${myProfile.first_name || ''} ${myProfile.last_name || ''}`.trim() || 'You';
       }
+    }
 
-      // Load real bids from Supabase
-      const { data: userBids, error: bidsError } = await supabase
-        .from('task_bids')
-        .select(`
-          *,
-          tasks!inner(title, budget_min, budget_max)
-        `)
-        .eq('worker_id', user.id)
-        .order('created_at', { ascending: false });
+    if (tasksError) {
+      console.error('Error loading tasks:', tasksError);
+    } else {
+      // Convert Supabase tasks to the expected format, always include client_id
+      const convertedTasks = (userTasks || []).map((task: any) => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        category: task.category,
+        budgetMin: task.budget_min,
+        budgetMax: task.budget_max,
+        urgency: task.urgency,
+        locationAddress: task.location_address,
+        createdAt: task.created_at,
+        status: task.status,
+        assignedAt: task.assigned_at,
+        completedAt: task.completed_at,
+        client_id: task.client_id, // ensure client_id is present
+        clientName: myProfileName,
+        clientRating: 5.0
+      }));
 
-      if (bidsError) {
-        console.error('Error loading bids:', bidsError);
-        setMyBids([]);
-      } else {
-        // Convert Supabase bids to the expected format
-        const convertedBids = (userBids || []).map((bid: any) => ({
+      setMyTasks(convertedTasks);
+      // Calculate real stats
+      setRealStats({
+        totalTasksPosted: convertedTasks.length,
+        activeTasks: convertedTasks.filter(t => ['open', 'assigned', 'in_progress'].includes(t.status)).length,
+        completedTasks: convertedTasks.filter(t => t.status === 'completed').length
+      });
+    }
+
+    // Load real bids from Supabase
+    const { data: userBids, error: bidsError } = await supabase
+      .from('task_bids')
+      .select(`*, tasks!inner(title, budget_min, budget_max, client_id)`)
+      .eq('worker_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (bidsError) {
+      console.error('Error loading bids:', bidsError);
+      setMyBids([]);
+    } else {
+      // Convert Supabase bids to the expected format
+      const convertedBids = await Promise.all((userBids || []).map(async (bid: any) => {
+        let clientName = 'Client';
+        if (bid.tasks?.client_id) {
+          const { data: clientProfile } = await supabase
+            .from('user_profiles')
+            .select('first_name, last_name')
+            .eq('user_id', bid.tasks.client_id)
+            .single();
+          if (clientProfile) {
+            clientName = `${clientProfile.first_name || ''} ${clientProfile.last_name || ''}`.trim() || 'Client';
+          }
+        }
+        return {
           id: bid.id,
           taskId: bid.task_id,
           taskTitle: bid.tasks?.title || 'Unknown Task',
@@ -408,127 +479,81 @@ const UserDashboard: React.FC = () => {
           message: bid.message || '',
           status: bid.status,
           createdAt: bid.created_at,
-          clientName: 'Client' // We can fetch this from user_profiles if needed
-        }));
+          clientName
+        };
+      }));
 
-        setMyBids(convertedBids);
-      }
+      setMyBids(convertedBids);
+    }
 
-      // Load bids for my tasks (for accept/reject functionality)
-      if (userTasks && userTasks.length > 0) {
-        const taskIds = userTasks.map(task => task.id);
-        const { data: taskBidsData, error: taskBidsError } = await supabase
-          .from('task_bids')
-          .select('*')
-          .in('task_id', taskIds)
-          .order('created_at', { ascending: false });
+    // Load assigned tasks (tasks where user is the worker)
+    const { data: assignedTasksData, error: assignedError } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('worker_id', user.id)
+      .order('created_at', { ascending: false });
 
-        if (taskBidsError) {
-          console.error('Error loading task bids:', taskBidsError);
-          setTaskBids({});
-        } else {
-          // Group bids by task_id and get user names separately
-          const bidsByTask: Record<string, Bid[]> = {};
-          
-          for (const bid of taskBidsData || []) {
-            // Try to get user profile for each bid
-            const { data: userProfile } = await supabase
+    if (assignedError) {
+      console.error('Error loading assigned tasks:', assignedError);
+      setAssignedTasks([]);
+    } else {
+      // Convert assigned tasks to the expected format, always include client_id and fetch clientName
+      const convertedAssignedTasks = await Promise.all(
+        (assignedTasksData || []).map(async (task: any) => {
+          let clientName = 'Client';
+          if (task.client_id) {
+            const { data: clientProfile } = await supabase
               .from('user_profiles')
               .select('first_name, last_name')
-              .eq('user_id', bid.worker_id)
+              .eq('user_id', task.client_id)
               .single();
-
-            const convertedBid = {
-              id: bid.id,
-              taskId: bid.task_id,
-              taskTitle: '',
-              bidAmount: bid.bid_amount,
-              message: bid.message || '',
-              status: (bid.status as 'pending' | 'accepted' | 'rejected'),
-              createdAt: bid.created_at,
-              clientName: userProfile 
-                ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() 
-                : 'Unknown User',
-              bidderId: bid.worker_id
-            };
-
-            if (!bidsByTask[bid.task_id]) {
-              bidsByTask[bid.task_id] = [];
+            if (clientProfile) {
+              clientName = `${clientProfile.first_name || ''} ${clientProfile.last_name || ''}`.trim() || 'Client';
             }
-            bidsByTask[bid.task_id].push(convertedBid);
           }
-          setTaskBids(bidsByTask);
-        }
-      }
-
-      // Load assigned tasks (tasks where user is the worker)
-      const { data: assignedTasksData, error: assignedError } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('worker_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (assignedError) {
-        console.error('Error loading assigned tasks:', assignedError);
-        setAssignedTasks([]);
-      } else {
-        // Convert assigned tasks to the expected format, always include client_id and fetch clientName
-        const convertedAssignedTasks = await Promise.all(
-          (assignedTasksData || []).map(async (task: any) => {
-            let clientName = 'Client';
-            if (task.client_id) {
-              const { data: clientProfile } = await supabase
-                .from('user_profiles')
-                .select('first_name, last_name')
-                .eq('user_id', task.client_id)
-                .single();
-              if (clientProfile) {
-                clientName = `${clientProfile.first_name || ''} ${clientProfile.last_name || ''}`.trim() || 'Client';
-              }
-            }
-            return {
-              id: task.id,
-              title: task.title,
-              description: task.description,
-              category: task.category,
-              budgetMin: task.budget_min,
-              budgetMax: task.budget_max,
-              urgency: task.urgency,
-              locationAddress: task.location_address,
-              createdAt: task.created_at,
-              status: task.status,
-              assignedAt: task.assigned_at,
-              completedAt: task.completed_at,
-              client_id: task.client_id,
-              clientName,
-              clientRating: 4.5
-            };
-          })
-        );
-        setAssignedTasks(convertedAssignedTasks);
-      }
-
-      if (userTasks && userTasks.length > 0) {
-        toast({
-          title: "Dashboard Loaded",
-          description: `Found ${userTasks.length} tasks you've posted.`,
-        });
-      }
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      toast({
-        title: "Error Loading Dashboard",
-        description: "Failed to load your dashboard data.",
-        variant: "destructive",
-      });
-      // Set empty arrays on error
-      setMyTasks([]);
-      setMyBids([]);
-      setAssignedTasks([]);
-    } finally {
-      setLoading(false);
+          return {
+            id: task.id,
+            title: task.title,
+            description: task.description,
+            category: task.category,
+            budgetMin: task.budget_min,
+            budgetMax: task.budget_max,
+            urgency: task.urgency,
+            locationAddress: task.location_address,
+            createdAt: task.created_at,
+            status: task.status,
+            assignedAt: task.assigned_at,
+            completedAt: task.completed_at,
+            client_id: task.client_id,
+            clientName,
+            clientRating: 4.5
+          };
+        })
+      );
+      setAssignedTasks(convertedAssignedTasks);
     }
-  };
+
+    if (userTasks && userTasks.length > 0) {
+      toast({
+        title: "Dashboard Loaded",
+        description: `Found ${userTasks.length} tasks you've posted.`,
+      });
+    }
+  } catch (error) {
+    console.error('Error loading dashboard data:', error);
+    toast({
+      title: "Error Loading Dashboard",
+      description: "Failed to load your dashboard data.",
+      variant: "destructive",
+    });
+    // Set empty arrays on error
+    setMyTasks([]);
+    setMyBids([]);
+    setAssignedTasks([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -855,38 +880,55 @@ const UserDashboard: React.FC = () => {
                                         <XCircle className="h-4 w-4 mr-1" />
                                         Reject
                                       </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setChatTarget({
-                                          taskId: task.id,
-                                          userId: bid.bidderId,
-                                          userName: bid.clientName || 'Bidder',
-                                          taskTitle: task.title
-                                        })}
-                                      >
-                                        <MessageCircle className="h-4 w-4 mr-1" />
-                                        Chat
-                                      </Button>
+                                      <div className="flex flex-col items-center">
+                                        {unreadCounts[`${task.id}_${bid.bidderId}`] > 0 && (
+                                          <span className="mb-1 bg-red-600 text-white text-xs rounded-full px-2 py-0.5 min-w-[18px] text-center font-bold border border-white shadow">
+                                            {unreadCounts[`${task.id}_${bid.bidderId}`]}
+                                          </span>
+                                        )}
+                                        {/* DEBUG: Show unread count value always for troubleshooting */}
+                                        <span className="text-xs text-gray-400 mt-1">Unread: {unreadCounts[`${task.id}_${bid.bidderId}`]}</span>
+                                        {/* no stray parenthesis here */}
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => setChatTarget({
+                                            taskId: task.id,
+                                            userId: bid.bidderId,
+                                            userName: bid.clientName || 'Bidder',
+                                            taskTitle: task.title
+                                          })}
+                                        >
+                                          <MessageCircle className="h-4 w-4 mr-1" />
+                                          Chat
+                                        </Button>
+                                      </div>
                                     </div>
                                   )}
                                   
                                   {/* Chat button for accepted/rejected bids */}
                                   {(bid.status === 'accepted' || bid.status === 'rejected') && (
                                     <div className="flex gap-2 ml-2">
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setChatTarget({
-                                          taskId: task.id,
-                                          userId: bid.bidderId,
-                                          userName: bid.clientName || 'Bidder',
-                                          taskTitle: task.title
-                                        })}
-                                      >
-                                        <MessageCircle className="h-4 w-4 mr-1" />
-                                        Chat
-                                      </Button>
+                                      <div className="flex flex-col items-center">
+                                        {unreadCounts[`${task.id}_${bid.bidderId}`] > 0 && (
+                                          <span className="mb-1 bg-red-600 text-white text-xs rounded-full px-2 py-0.5 min-w-[18px] text-center font-bold border border-white shadow">
+                                            {unreadCounts[`${task.id}_${bid.bidderId}`]}
+                                          </span>
+                                        )}
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => setChatTarget({
+                                            taskId: task.id,
+                                            userId: bid.bidderId,
+                                            userName: bid.clientName || 'Bidder',
+                                            taskTitle: task.title
+                                          })}
+                                        >
+                                          <MessageCircle className="h-4 w-4 mr-1" />
+                                          Chat
+                                        </Button>
+                                      </div>
                                     </div>
                                   )}
                                 </div>
