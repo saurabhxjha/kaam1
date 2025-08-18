@@ -69,8 +69,8 @@ export const openRazorpayCheckout = async (
     key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_DNOOOsu0jOhrwh',
     amount: amount * 100, // Amount in paise
     currency: 'INR',
-    name: 'JodKaam',
-    description: 'JodKaam Pro Subscription',
+    name: 'Sahayuk',
+    description: 'Sahayuk Pro Subscription',
     order_id: orderId,
     prefill: {
       name: userName,

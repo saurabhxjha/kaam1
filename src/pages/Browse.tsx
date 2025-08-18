@@ -2,6 +2,7 @@ import React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import BrowseGigs from "@/components/jodkaam/BrowseGigs";
 import SignatureBackground from "@/components/jodkaam/SignatureBackground";
+import { MapPin } from "lucide-react";
 
 const BrowsePage: React.FC = () => {
   const { user, loading } = useAuth();
@@ -10,7 +11,13 @@ const BrowsePage: React.FC = () => {
     return (
       <SignatureBackground>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="text-center p-8 glass-panel rounded-2xl shadow-soft">
+            <div className="relative mb-6">
+              <div className="w-12 h-12 mx-auto border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+            </div>
+            <h3 className="text-lg font-semibold mb-2 text-gradient-primary">Loading Tasks</h3>
+            <p className="text-muted-foreground text-sm">Finding gigs near you...</p>
+          </div>
         </div>
       </SignatureBackground>
     );
@@ -20,17 +27,25 @@ const BrowsePage: React.FC = () => {
     return (
       <SignatureBackground>
         <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
-            <p className="text-muted-foreground mb-6">
-              Please sign in to browse available tasks and gigs.
+          <div className="text-center max-w-md mx-auto">
+            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-primary rounded-3xl flex items-center justify-center shadow-glow">
+              <MapPin className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold mb-4 text-gradient-primary">Ready to Explore?</h1>
+            <p className="text-muted-foreground mb-8 text-lg">
+              Sign in to discover amazing tasks and gigs happening right in your neighborhood.
             </p>
-            <a
-              href="/auth"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-            >
-              Sign In
-            </a>
+            <div className="space-y-4">
+              <a
+                href="/auth"
+                className="inline-flex items-center justify-center rounded-xl text-base font-semibold bg-gradient-primary text-white hover:opacity-90 transition-all duration-200 shadow-glow h-12 px-8 py-3 w-full"
+              >
+                Get Started
+              </a>
+              <p className="text-sm text-muted-foreground">
+                Join thousands earning money with local tasks
+              </p>
+            </div>
           </div>
         </div>
       </SignatureBackground>

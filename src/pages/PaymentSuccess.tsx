@@ -1,105 +1,83 @@
 import React, { useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, CreditCard, Home } from "lucide-react";
-import { useSearchParams, Navigate } from "react-router-dom";
+import { CheckCircle, ArrowRight, Home, Crown, Zap } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import SignatureBackground from "@/components/jodkaam/SignatureBackground";
 
 export const PaymentSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const paymentId = searchParams.get('payment_id');
-  const checkoutStatus = searchParams.get('checkout');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Show success message when component mounts
-    if (paymentId) {
-      toast({
-        title: "Payment Successful! 🎉", 
-        description: `Payment ID: ${paymentId}`,
-      });
-    } else if (checkoutStatus === 'success') {
-      toast({
-        title: "Payment Successful!",
-        description: "Welcome to JodKaam Pro! Your subscription is now active.",
-      });
-    }
-  }, [paymentId, checkoutStatus]);
-
-  // Redirect to home if no payment parameters
-  if (!paymentId && checkoutStatus !== 'success') {
-    return <Navigate to="/" replace />;
-  }
+    toast({
+      title: "Payment Successful!",
+      description: "Welcome to Sahayuk Pro! Your subscription is now active.",
+    });
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md text-center">
-        <CardContent className="pt-6 space-y-6">
-          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-            <Check className="w-8 h-8 text-green-600" />
-          </div>
-          
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold">
-              Payment Successful!
-            </h1>
-            <p className="text-muted-foreground">
-              Thank you for upgrading to JodKaam Pro!
-            </p>
-          </div>
-
-          {paymentId && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <CreditCard className="w-4 h-4" />
-                <span>Payment ID: {paymentId}</span>
-              </div>
+    <SignatureBackground>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-lg text-center glass-panel shadow-glow border-0">
+          <CardHeader className="pb-6">
+            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center mb-6 shadow-glow">
+              <CheckCircle className="w-10 h-10 text-white" />
             </div>
-          )}
-
-          <div className="space-y-3 text-left">
-            <h3 className="font-semibold">What's next?</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <Check className="w-4 h-4 mt-0.5 text-green-600" />
-                <span>Your Pro subscription is now active</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-4 h-4 mt-0.5 text-green-600" />
-                <span>Post unlimited tasks</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-4 h-4 mt-0.5 text-green-600" />
-                <span>Get wider visibility (up to 10km)</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Check className="w-4 h-4 mt-0.5 text-green-600" />
-                <span>Priority placement in search</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <Button 
-              variant="hero" 
-              size="lg" 
-              className="w-full"
-              onClick={() => window.location.href = '/'}
-            >
-              <Home className="mr-2 h-4 w-4" />
-              Go to Dashboard
-            </Button>
+            <CardTitle className="text-3xl font-bold text-gradient-primary mb-2">
+              Payment Successful!
+            </CardTitle>
+            <CardDescription className="text-lg">
+              Welcome to Sahayuk Pro! Your subscription is now active.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-200">
+              <div className="flex items-center gap-2 mb-4">
+                <Crown className="w-5 h-5 text-yellow-600" />
+                <h3 className="font-semibold text-green-800">Pro Features Unlocked</h3>
+              </div>
+              <ul className="text-sm text-green-700 space-y-2 text-left">
+                <li className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  Unlimited task posting
+                </li>
+                <li className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  Extended visibility (up to 10km)
+                </li>
+                <li className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  Priority support
+                </li>
+                <li className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  Advanced analytics
+                </li>
+              </ul>
+            </div>
             
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="w-full"
-              onClick={() => window.location.href = '/#pricing'}
-            >
-              View Pricing Details
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                onClick={() => navigate("/dashboard")}
+                className="flex-1 h-12 font-semibold bg-gradient-primary hover:opacity-90 transition-all duration-300 shadow-glow"
+              >
+                <ArrowRight className="w-4 h-4 mr-2" />
+                Go to Dashboard
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate("/")}
+                className="flex-1 h-12 font-semibold"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </SignatureBackground>
   );
 };

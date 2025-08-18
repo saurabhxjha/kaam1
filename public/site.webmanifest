@@ -1,0 +1,12 @@
+{
+  "name": "Sahayuk",
+  "short_name": "Sahayuk",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "icons": [
+    { "src": "/SAHAYUK-LOGO.jpg", "sizes": "192x192", "type": "image/jpeg" },
+    { "src": "/SAHAYUK-LOGO.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}

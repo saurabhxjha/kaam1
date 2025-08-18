@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
+import logoImg from "@/assets/SAHAYUK-LOGO.jpg";
 
 import { Menu } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -15,42 +16,66 @@ import { NotificationsList } from "./NotificationsList";
 
 function MobileDrawerContent({ user, navigate, handleSignOut, onDrawerClose }: { user: any, navigate: any, handleSignOut: any, onDrawerClose: () => void }) {
   return (
-    <SheetContent side={undefined} className="p-0 w-[90vw] max-w-sm mx-auto rounded-xl mt-16 bg-white shadow-xl border border-gray-200 max-h-[80vh] overflow-y-auto">
-      <div className="flex flex-col gap-2 p-4">
-        <a href="/" className="font-bold text-lg mb-2" onClick={onDrawerClose}>
-          <span className="text-gradient-primary">JodKaam</span>
-        </a>
-        <Button variant="ghost" className="justify-start" onClick={() => { navigate("/"); onDrawerClose(); }}>
-          Home
-        </Button>
-        <Button variant="ghost" className="justify-start" onClick={() => { navigate("/", { state: { scrollTo: "features" } }); onDrawerClose(); }}>
-          Features
-        </Button>
-        <Button variant="ghost" className="justify-start" onClick={() => { navigate("/", { state: { scrollTo: "pricing" } }); onDrawerClose(); }}>
-          Pricing
-        </Button>
-        {user ? (
-          <>
-            <Button variant="ghost" asChild className="justify-start" onClick={onDrawerClose}>
-              <a href="/browse">Browse Tasks</a>
-            </Button>
-            <Button variant="ghost" asChild className="justify-start" onClick={onDrawerClose}>
-              <a href="/dashboard">Dashboard</a>
-            </Button>
-            <Button variant="ghost" asChild className="justify-start" onClick={onDrawerClose}>
-              <a href="/profile">Profile</a>
-            </Button>
-            <Button variant="ghost" className="justify-start" onClick={() => { handleSignOut(); onDrawerClose(); }}>
-              Sign out
-            </Button>
-          </>
-        ) : (
-          <Button variant="outline" asChild className="justify-start" onClick={onDrawerClose}>
-            <a href="/auth">Sign In</a>
-          </Button>
-        )}
+    <div className="flex flex-col space-y-1 p-6 pt-8">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-gradient-primary">Sahayuk</h2>
+        <p className="text-sm text-muted-foreground">Milkar Kaam, Saath Mein Naam</p>
       </div>
-    </SheetContent>
+      
+      <Button variant="ghost" className="justify-start h-12 text-base" onClick={() => { navigate("/"); onDrawerClose(); }}>
+        Home
+      </Button>
+      <Button variant="ghost" className="justify-start h-12 text-base" onClick={() => { 
+        navigate("/");
+        setTimeout(() => {
+          const featuresElement = document.getElementById('features');
+          if (featuresElement) {
+            featuresElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+        onDrawerClose(); 
+      }}>
+        Features
+      </Button>
+      <Button variant="ghost" className="justify-start h-12 text-base" onClick={() => { 
+        navigate("/");
+        setTimeout(() => {
+          const pricingElement = document.getElementById('pricing');
+          if (pricingElement) {
+            pricingElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+        onDrawerClose(); 
+      }}>
+        Pricing
+      </Button>
+      
+      {user ? (
+        <>
+          <div className="border-t border-gray-200 my-4"></div>
+          <Button variant="ghost" className="justify-start h-12 text-base" onClick={() => { navigate("/browse"); onDrawerClose(); }}>
+            Browse Tasks
+          </Button>
+          <Button variant="ghost" className="justify-start h-12 text-base" onClick={() => { navigate("/dashboard"); onDrawerClose(); }}>
+            Dashboard
+          </Button>
+          <Button variant="ghost" className="justify-start h-12 text-base" onClick={() => { navigate("/profile"); onDrawerClose(); }}>
+            Profile
+          </Button>
+          <div className="border-t border-gray-200 my-4"></div>
+          <Button variant="ghost" className="justify-start h-12 text-base text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => { handleSignOut(); onDrawerClose(); }}>
+            Sign out
+          </Button>
+        </>
+      ) : (
+        <>
+          <div className="border-t border-gray-200 my-4"></div>
+          <Button variant="default" className="justify-center h-12 text-base bg-gradient-primary hover:opacity-90" onClick={() => { navigate("/auth"); onDrawerClose(); }}>
+            Sign in
+          </Button>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -95,17 +120,40 @@ const Navbar: React.FC = () => {
   const handleDrawerClose = () => setDrawerOpen(false);
 
   return (
-    <header className="w-full sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
-      <nav className="flex items-center justify-between h-16 overflow-x-auto whitespace-nowrap gap-2 px-2 sm:gap-3 sm:px-4">
-        <a href="/" className="font-bold text-lg leading-none">
-          <span className="text-gradient-primary">JodKaam</span>
+    <header className="w-full sticky top-0 z-40 bg-white border-b border-gray-200 shadow-lg">
+      <nav className="flex items-center justify-between h-20 px-4 sm:px-6 lg:px-8">
+        <a href="/" className="flex items-center gap-2 leading-none" aria-label="Sahayuk Home">
+          <img
+            src={logoImg}
+            alt="Sahayuk logo"
+            className="h-14 md:h-16 w-auto object-contain"
+            loading="eager"
+            decoding="async"
+          />
+          <span className="sr-only">Sahayuk</span>
         </a>
         <div className="hidden md:flex items-center gap-3">
           <Button variant="ghost" onClick={() => navigate("/")}>Home</Button>
-          <Button variant="ghost" onClick={() => navigate("/", { state: { scrollTo: "features" } })}>
+          <Button variant="ghost" onClick={() => {
+            navigate("/");
+            setTimeout(() => {
+              const featuresElement = document.getElementById('features');
+              if (featuresElement) {
+                featuresElement.scrollIntoView({ behavior: 'smooth' });
+              }
+            }, 100);
+          }}>
             Features
           </Button>
-          <Button variant="ghost" onClick={() => navigate("/", { state: { scrollTo: "pricing" } })}>
+          <Button variant="ghost" onClick={() => {
+            navigate("/");
+            setTimeout(() => {
+              const pricingElement = document.getElementById('pricing');
+              if (pricingElement) {
+                pricingElement.scrollIntoView({ behavior: 'smooth' });
+              }
+            }, 100);
+          }}>
             Pricing
           </Button>
           {user ? (
@@ -131,7 +179,7 @@ const Navbar: React.FC = () => {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-80 p-0">
+                <PopoverContent className="w-80 p-0 bg-white border border-gray-200 shadow-xl">
                   <NotificationsList className="border-0 shadow-none" />
                 </PopoverContent>
               </Popover>
@@ -147,7 +195,7 @@ const Navbar: React.FC = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent className="w-56 bg-white border border-gray-200 shadow-xl" align="end" forceMount>
                   <DropdownMenuItem asChild>
                     <a href="/profile" className="flex items-center">
                       <User className="mr-2 h-4 w-4" />
@@ -185,7 +233,7 @@ const Navbar: React.FC = () => {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-0">
+              <PopoverContent className="w-80 p-0 bg-white border border-gray-200 shadow-xl">
                 <NotificationsList className="border-0 shadow-none" />
               </PopoverContent>
             </Popover>
@@ -196,7 +244,9 @@ const Navbar: React.FC = () => {
                 <Menu className="w-6 h-6" />
               </Button>
             </SheetTrigger>
-            <MobileDrawerContent user={user} navigate={navigate} handleSignOut={handleSignOut} onDrawerClose={handleDrawerClose} />
+            <SheetContent side="right" className="w-[280px] sm:w-[350px] bg-white border-l border-gray-200">
+              <MobileDrawerContent user={user} navigate={navigate} handleSignOut={handleSignOut} onDrawerClose={handleDrawerClose} />
+            </SheetContent>
           </Sheet>
         </div>
 

@@ -51,10 +51,19 @@ const AppContent = () => {
 
   if (authLoading || (user && profileLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <div className="text-center p-8 glass-panel rounded-2xl shadow-soft">
+          <div className="relative mb-6">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
+            <div className="absolute inset-0 w-12 h-12 mx-auto rounded-full border-2 border-primary/20 animate-pulse"></div>
+          </div>
+          <h3 className="text-lg font-semibold mb-2 text-gradient-primary">Sahayuk</h3>
+          <p className="text-muted-foreground text-sm">Setting up your workspace...</p>
+          <div className="mt-4 flex justify-center space-x-1">
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+          </div>
         </div>
       </div>
     );

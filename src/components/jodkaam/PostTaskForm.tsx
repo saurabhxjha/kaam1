@@ -298,12 +298,12 @@ const PostTaskForm: React.FC<{ onClose?: () => void; onTaskPosted?: () => void }
   };
 
   return (
-  <div className="w-full max-w-2xl mx-auto bg-white !bg-opacity-100 shadow border border-gray-200 rounded-xl p-6">
-    <div className="flex items-center gap-2 mb-6">
-      <Tag className="h-5 w-5" />
-      <span className="text-xl font-semibold">Post a New Task</span>
+  <div className="w-full max-w-2xl mx-auto bg-white shadow-lg border border-gray-200 rounded-xl p-4 sm:p-6">
+    <div className="flex items-center gap-2 mb-4 sm:mb-6">
+      <Tag className="h-5 w-5 text-blue-600" />
+      <span className="text-lg sm:text-xl font-semibold text-gray-900">Post a New Task</span>
     </div>
-  <form onSubmit={handleSubmit} className="space-y-6">
+  <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title">Task Title</Label>
@@ -411,12 +411,22 @@ const PostTaskForm: React.FC<{ onClose?: () => void; onTaskPosted?: () => void }
           </div>
 
           {/* Submit Buttons */}
-          <div className="flex gap-3 pt-4">
-            <Button type="submit" disabled={loading} className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <Button 
+              type="submit" 
+              disabled={loading} 
+              className="flex-1 h-12 font-semibold bg-gradient-primary hover:bg-blue-700 transition-all duration-300 shadow-lg"
+            >
+              <Tag className="h-4 w-4 mr-2" />
               {loading ? "Posting..." : "Post Task"}
             </Button>
             {onClose && (
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                className="h-12 px-6 border-gray-300 hover:bg-gray-50"
+              >
                 Cancel
               </Button>
             )}

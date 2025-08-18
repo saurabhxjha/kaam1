@@ -195,8 +195,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, onProfileComplete, isEd
           </CardTitle>
           <p className="text-muted-foreground">
             {isEdit 
-              ? "Update your JodKaam profile information" 
-              : "Let's set up your JodKaam profile to get started"
+              ? "Update your Sahayuk profile information" 
+              : "Let's set up your Sahayuk profile to get started"
             }
           </p>
         </CardHeader>

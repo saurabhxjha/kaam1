@@ -41,13 +41,16 @@ const Hero: React.FC = () => {
 
   return (
     <section className="relative flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center py-12 md:py-20 w-full max-w-7xl mx-auto px-4">
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-16 items-center py-8 md:py-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="order-2 md:order-1">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 text-center md:text-left text-gray-900">
-            JodKaam <span className="text-blue-600">— Hyperlocal Tasks & Gigs Near You</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-3 sm:mb-5 text-center md:text-left text-gray-900 leading-tight">
+            <span className="block">Sahayuk</span>
+            <span className="block mt-2 text-2xl sm:text-3xl md:text-4xl text-blue-600">
+              Milkar Kaam, Saath Mein Naam
+            </span>
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-6 text-center md:text-left max-w-xl">
-            Post small tasks or find nearby gigs in minutes. Chat securely, get instant notifications, and grow with our Pro plan.
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 mb-4 sm:mb-6 text-center md:text-left max-w-xl mx-auto md:mx-0">
+            Connect with skilled professionals for your tasks. Secure communication, instant notifications, and premium features available.
           </p>
           <div className="flex justify-center md:justify-start mb-4">
             <span className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full font-semibold text-sm shadow-sm">
@@ -55,20 +58,30 @@ const Hero: React.FC = () => {
               Trusted by 10,000+ users
             </span>
           </div>
-          <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center md:justify-start" id="get-started">
-            <Button variant="hero" size="lg" onClick={handlePostTask} className="font-bold px-8 py-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start" id="get-started">
+            <Button 
+              variant="hero" 
+              size="lg" 
+              onClick={handlePostTask} 
+              className="font-bold px-6 sm:px-8 py-3 sm:py-4 h-12 sm:h-14 text-base sm:text-lg bg-gradient-primary hover:opacity-90 transition-all duration-300 shadow-glow transform hover:scale-105 w-full sm:w-auto"
+            >
               Post a Task
             </Button>
-            <Button variant="secondary" size="lg" onClick={handleBrowseGigs} className="font-bold px-8 py-4">
-              Browse Nearby Gigs
+            <Button 
+              variant="secondary" 
+              size="lg" 
+              onClick={handleBrowseGigs} 
+              className="font-bold px-6 sm:px-8 py-3 sm:py-4 h-12 sm:h-14 text-base sm:text-lg border-2 border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-soft transform hover:scale-105 w-full sm:w-auto"
+            >
+              Browse Available Tasks
             </Button>
           </div>
         </div>
-        <div className="relative order-1 md:order-2 mb-8 md:mb-0 flex justify-center">
-          <div className="w-full max-w-md animate-float">
+        <div className="relative order-1 md:order-2 mb-6 md:mb-0 flex justify-center">
+          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md animate-float">
             <img
               src={heroImage}
-              alt="JodKaam hyperlocal tasks illustration with map pins and community"
+              alt="Sahayuk hyperlocal tasks illustration with map pins and community"
               className="w-full h-auto rounded-2xl border shadow-lg"
               decoding="async"
             />

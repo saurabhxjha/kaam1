@@ -76,8 +76,8 @@ export const openRazorpayCheckout = async (
       key: razorpayKey,
       amount: amount * 100, // Amount in paise
       currency: 'INR',
-      name: 'JodKaam',
-      description: 'JodKaam Pro Subscription',
+      name: 'Sahayuk',
+      description: 'Sahayuk Pro Subscription',
       order_id: orderId,
       prefill: {
         name: userName,

@@ -206,14 +206,24 @@ const BrowseGigs: React.FC = () => {
   };
 
   return (
-  <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-4 md:space-y-6">
+  <div className="w-full max-w-6xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-6 md:py-8 space-y-6">
   {/* Header */}
-  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-1 sm:px-0">
-        <div>
-          <h1 className="text-3xl font-bold">Browse Nearby Gigs</h1>
-          <p className="text-muted-foreground">
+  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 px-1 sm:px-0">
+        <div className="space-y-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-gradient-primary">Browse Nearby Gigs</h1>
+          <p className="text-lg text-muted-foreground">
             Find tasks in your area and start earning today
           </p>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              {filteredTasks.length} tasks available
+            </span>
+            <span className="flex items-center gap-1">
+              <MapPin className="w-4 h-4" />
+              Within 5km radius
+            </span>
+          </div>
         </div>
         
         <Dialog open={showPostDialog} onOpenChange={setShowPostDialog}>
@@ -260,17 +270,17 @@ const BrowseGigs: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <Card>
+      <Card className="surface-card border-0">
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {/* Search */}
-            <div className="relative">
+            <div className="relative sm:col-span-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search tasks..."
+                placeholder="Search tasks, locations, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
 

@@ -200,70 +200,96 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onBid, showBidButton = true }
   };
 
   return (
-  <Card className="bg-white shadow hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <CardTitle className="text-lg mb-2">{task.title}</CardTitle>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-              <User className="h-4 w-4" />
-              <span>{task.clientName}</span>
-              <div className="flex items-center">
-                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                <span className="ml-1">{task.clientRating.toFixed(1)}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Badge variant={getUrgencyColor(task.urgency)} className="text-xs">
+    <>
+      <Card className="h-full flex flex-col surface-card border-0 hover:shadow-glow transition-all duration-300 transform hover:-translate-y-1 group">
+        <CardHeader className="pb-4">
+          <div className="flex items-start justify-between gap-3">
+            <CardTitle className="text-lg font-semibold line-clamp-2 flex-1 group-hover:text-primary transition-colors duration-300">
+              {task.title}
+            </CardTitle>
+            <Badge 
+              variant={
+                task.urgency === 'urgent' ? 'destructive' :
+                task.urgency === 'high' ? 'default' :
+                'secondary'
+              }
+              className={`shrink-0 font-medium ${
+                task.urgency === 'urgent' ? 'animate-pulse' : ''
+              }`}
+            >
               {task.urgency}
             </Badge>
-            <Badge className={`text-xs ${getCategoryColor(task.category)}`}>
-              {task.category}
-            </Badge>
           </div>
-        </div>
-      </CardHeader>
+          
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Avatar className="w-7 h-7 border-2 border-primary/20">
+                <AvatarImage src="" />
+                <AvatarFallback className="text-xs bg-gradient-primary text-white">
+                  <User className="w-3 h-3" />
+                </AvatarFallback>
+              </Avatar>
+              <span className="font-medium">{task.clientName}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">{task.clientRating}</span>
+            </div>
+          </div>
+        </CardHeader>
 
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground line-clamp-2">
           {task.description}
         </p>
 
-        <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-1">
-            <DollarSign className="h-4 w-4 text-green-600" />
-            <span className="font-medium">{formatBudget(task.budgetMin, task.budgetMax)}</span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
+          {hasAlreadyBid && (
+            <div className="flex items-center gap-2 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
+              <span className="text-xs text-green-700 font-semibold">Bid Submitted</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
+            <span className="font-semibold text-green-700">{formatBudget(task.budgetMin, task.budgetMax)}</span>
           </div>
           
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4 text-blue-600" />
-            <span>{task.locationAddress}</span>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <span className="truncate">{task.locationAddress}</span>
           </div>
         </div>
 
         {task.distance && (
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>{formatDistance(task.distance)}</span>
+          <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200 w-fit">
+            <Clock className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-700">{formatDistance(task.distance)}</span>
           </div>
         )}
 
-        <div className="flex items-center justify-between pt-2 gap-2 flex-wrap">
-          <span className="text-xs text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-3 gap-3 border-t border-gray-100">
+          <span className="text-xs text-muted-foreground bg-gray-50 px-2 py-1 rounded-full">
             Posted {new Date(task.createdAt).toLocaleDateString()}
           </span>
 
-          {/* Bid button logic remains the same */}
+          {/* Enhanced bid button with better mobile design */}
           {showBidButton && task.status === 'open' && !hasAlreadyBid && (
             <Dialog open={showBidDialog} onOpenChange={setShowBidDialog}>
               <DialogTrigger asChild>
-                <Button size="sm">
-                  <MessageSquare className="h-4 w-4 mr-1" />
-                  Bid on Task
+                <Button 
+                  size="sm" 
+                  className="bg-gradient-primary hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 w-full sm:w-auto"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Place Bid
+                  <Badge 
+                    variant="secondary" 
+                    className="text-xs px-3 py-1 bg-gray-100 text-gray-700 border border-gray-200"
+                  >
+                    {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                  </Badge>
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-white shadow-xl border border-gray-200">
+              <DialogContent className="bg-white shadow-xl border border-gray-200 max-w-md mx-auto">
                 <DialogHeader>
                   <DialogTitle>Submit Your Bid</DialogTitle>
                 </DialogHeader>
@@ -307,34 +333,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onBid, showBidButton = true }
               </DialogContent>
             </Dialog>
           )}
-
-          {/* Always show chat button for all users except task owner (for owner, show info) */}
-          {user?.id !== (task.client_id || task.clientId) ? (
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => setShowChatWindow(true)}
-            >
-              <MessageCircle className="h-4 w-4 mr-1" />
-              Chat
-            </Button>
-          ) : (
-            <Button 
-              size="sm" 
-              variant="outline"
-              disabled
-              onClick={() => {
-                toast({
-                  title: "Chat Unavailable",
-                  description: "You can chat with workers after they bid on your task",
-                  variant: "default",
-                });
-              }}
-            >
-              <MessageCircle className="h-4 w-4 mr-1" />
-              Chat with Workers
-            </Button>
-          )}
         </div>
       </CardContent>
       
@@ -353,7 +351,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onBid, showBidButton = true }
           </div>
         </div>
       )}
-    </Card>
+      </Card>
+    </>
   );
 };
 

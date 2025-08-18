@@ -23,7 +23,10 @@ import {
   User,
   TrendingUp,
   Calendar,
-  Target
+  Target,
+  Send,
+  Award,
+  Briefcase
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -227,53 +230,79 @@ const TaskBidsSection: React.FC<{
 };
 
 const UserDashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const [showPostTaskForm, setShowPostTaskForm] = useState(false);
-  // Unread chat message counts: key = `${taskId}_${userId}`
-  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
-  // ...existing code...
-  // The function body is correct, but ensure the return type is JSX.Element
-  // ...existing code...
-  // The return statement must return JSX.Element, which it does.
-  // No code change needed in the body, just ensure the return type is correct.
-  // If the error persists, explicitly type the return value:
-  // return (<div>...</div>);
   const { user } = useAuth();
-  const { profile, tasksRemaining } = useProfileCheck(user);
+  const { profile } = useProfileCheck(user);
+  const navigate = useNavigate();
   const [myTasks, setMyTasks] = useState<Task[]>([]);
   const [myBids, setMyBids] = useState<Bid[]>([]);
   const [assignedTasks, setAssignedTasks] = useState<Task[]>([]);
-  const [taskBids, setTaskBids] = useState<Record<string, Bid[]>>({});
-  const [taskCompletions, setTaskCompletions] = useState<Record<string, TaskCompletion[]>>({});
-  const [showCompletionForm, setShowCompletionForm] = useState<string | null>(null);
+  const [bids, setBids] = useState<Bid[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewTarget, setReviewTarget] = useState<{
-    taskId: string;
-    userId: string;
-    userName: string;
-  } | null>(null);
-  const [chatTarget, setChatTarget] = useState<{
-    taskId: string;
-    userId: string;
-    userName: string;
-    taskTitle: string;
-  } | null>(null);
-  const [realStats, setRealStats] = useState({
-    totalTasksPosted: 0,
-    activeTasks: 0,
-    completedTasks: 0
-  });
-
+  const [reviewTarget, setReviewTarget] = useState<{ type: 'client' | 'worker', userId: string, taskId: string } | null>(null);
+  const [chatTarget, setChatTarget] = useState<{ taskId: string, userId: string, userName: string, taskTitle: string } | null>(null);
+  const [realStats, setRealStats] = useState<any>({});
+  const [showPostTaskForm, setShowPostTaskForm] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [chatUnreadCounts, setChatUnreadCounts] = useState<Record<string, number>>({});
+  const [taskBids, setTaskBids] = useState<Record<string, Bid[]>>({});
 
   useEffect(() => {
     loadDashboardData();
     fetchAllUnreadCounts();
+    fetchChatUnreadCounts();
     // Optionally, poll unread counts every 10s
-    // const interval = setInterval(fetchAllUnreadCounts, 10000);
-    // return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      fetchAllUnreadCounts();
+      fetchChatUnreadCounts();
+    }, 10000);
+    return () => clearInterval(interval);
   }, []);
+
+  // Recompute chat unread counts whenever tasks change (ensures we don't check an empty task list)
+  useEffect(() => {
+    if (!user) return;
+    console.log('♻️ Tasks changed, recomputing unread counts. myTasks:', myTasks.map(t => t.id), 'assignedTasks:', assignedTasks.map(t => t.id));
+    fetchChatUnreadCounts();
+  }, [user, myTasks, assignedTasks]);
+
+  // Fetch unread chat message counts for tasks
+  const fetchChatUnreadCounts = async () => {
+    if (!user) return;
+    
+    try {
+      const newCounts: Record<string, number> = {};
+      
+      // Check unread messages for all tasks where user is involved
+      const allTaskIds = [...myTasks.map(t => t.id), ...assignedTasks.map(t => t.id)];
+      console.log('🔍 Checking unread counts for tasks:', allTaskIds);
+      
+      for (const taskId of allTaskIds) {
+        // Check if chat_messages table exists first
+        const { data, error } = await supabase
+          .from('chat_messages')
+          .select('id')
+          .eq('task_id', taskId)
+          .eq('receiver_id', user.id)
+          .eq('is_read', false);
+          
+        if (!error && data) {
+          newCounts[taskId] = data.length;
+          console.log(`📨 Task ${taskId}: ${data.length} unread messages`);
+        } else if (error && !error.message.includes('does not exist')) {
+          console.error('Error checking unread messages for task', taskId, ':', error);
+        }
+      }
+      
+      console.log('🔴 Final unread counts:', newCounts);
+      setChatUnreadCounts(newCounts);
+    } catch (error) {
+      console.error('Error fetching chat unread counts:', error);
+      // Fallback: use notification-based unread count
+      setChatUnreadCounts({});
+    }
+  };
 
   // Fetch unread counts for all relevant chats (for all posted tasks and bids)
   const fetchAllUnreadCounts = async () => {
@@ -460,6 +489,7 @@ const UserDashboard: React.FC = () => {
       }));
 
       setMyTasks(convertedTasks);
+      console.log('✅ Loaded myTasks:', convertedTasks.map(t => t.id));
       // Calculate real stats
       setRealStats({
         totalTasksPosted: convertedTasks.length,
@@ -607,6 +637,7 @@ const UserDashboard: React.FC = () => {
         })
       );
       setAssignedTasks(convertedAssignedTasks);
+      console.log('✅ Loaded assignedTasks:', convertedAssignedTasks.map(t => t.id));
     }
 
     if (userTasks && userTasks.length > 0) {
@@ -667,6 +698,7 @@ const UserDashboard: React.FC = () => {
     const totalBids = myBids.length;
     const acceptedBids = myBids.filter(b => b.status === 'accepted').length;
     const tasksWorking = assignedTasks.filter(t => ['assigned', 'in_progress'].includes(t.status)).length;
+    const totalBidsReceived = realStats.totalBidsReceived || 0;
 
     return {
       totalTasksPosted,
@@ -674,7 +706,8 @@ const UserDashboard: React.FC = () => {
       completedTasks,
       totalBids,
       acceptedBids,
-      tasksWorking
+      tasksWorking,
+      totalBidsReceived
     };
   };
 
@@ -692,117 +725,130 @@ const UserDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="py-4 md:py-6 space-y-4 md:space-y-6 w-full">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
-            ))}
+      <div className="min-h-[400px] flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <div className="text-center p-8 glass-panel rounded-2xl shadow-soft">
+          <div className="relative mb-6">
+            <div className="w-16 h-16 animate-spin mx-auto border-4 border-primary/30 border-t-primary rounded-full"></div>
+            <div className="absolute inset-0 w-16 h-16 mx-auto rounded-full border-2 border-primary/20 animate-pulse"></div>
           </div>
-          <div className="h-96 bg-gray-200 rounded"></div>
+          <h3 className="text-lg font-semibold mb-2 text-gradient-primary">Loading Dashboard</h3>
+          <p className="text-muted-foreground text-sm">Fetching your tasks and bids...</p>
+          <div className="mt-4 flex justify-center space-x-1">
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back, {profile?.first_name ? `${profile.first_name} ${profile.last_name}` : user?.email}!
-          </p>
-          {profile && (
-            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Badge variant={profile.subscription_type === 'pro' ? 'default' : 'secondary'}>
-                  {profile.subscription_type === 'pro' ? 'Pro' : 'Free'}
-                </Badge>
-              </span>
-              {profile.subscription_type !== 'pro' && (
-                <span>
-                  Tasks this month: {profile.tasks_posted_this_month}/3 
-                  {tasksRemaining >= 0 && ` (${tasksRemaining} remaining)`}
-                </span>
-              )}
-            </div>
-          )}
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      {/* Enhanced Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 glass-panel rounded-2xl shadow-soft border-0">
+        <div className="space-y-1 text-center sm:text-left">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gradient-primary">Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage your tasks and bids efficiently</p>
         </div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-primary hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 w-full sm:w-auto text-sm sm:text-base">
+              <Target className="w-4 h-4 mr-2" />
+              Post New Task
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="text-xl font-semibold">Post a New Task</DialogTitle>
+            </DialogHeader>
+            <PostTaskForm onTaskPosted={loadDashboardData} />
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Stats Cards */}
-  <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Tasks Posted</p>
-                <p className="text-2xl font-bold">{stats.totalTasksPosted}</p>
+      {/* Enhanced Stats Cards */}
+      <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
+        <Card className="surface-card border-0 hover:shadow-glow transition-all duration-300">
+          <CardContent className="p-2 sm:p-3 md:p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="text-center sm:text-left">
+                <p className="text-xs text-muted-foreground mb-1">Tasks</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gradient-primary">{stats.totalTasksPosted}</p>
               </div>
-              <Target className="h-8 w-8 text-blue-600" />
+              <Target className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-blue-600 mx-auto sm:mx-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Active Tasks</p>
-                <p className="text-2xl font-bold">{stats.activeTasks}</p>
+        <Card className="surface-card border-0 hover:shadow-glow transition-all duration-300">
+          <CardContent className="p-2 sm:p-3 md:p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="text-center sm:text-left">
+                <p className="text-xs text-muted-foreground mb-1">Active</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gradient-primary">{stats.activeTasks}</p>
               </div>
-              <Clock className="h-8 w-8 text-orange-600" />
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-orange-600 mx-auto sm:mx-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Completed</p>
-                <p className="text-2xl font-bold">{stats.completedTasks}</p>
+        <Card className="surface-card border-0 hover:shadow-glow transition-all duration-300">
+          <CardContent className="p-2 sm:p-3 md:p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="text-center sm:text-left">
+                <p className="text-xs text-muted-foreground mb-1">Bids</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gradient-primary">{stats.totalBidsReceived}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-green-600 mx-auto sm:mx-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Bids Sent</p>
-                <p className="text-2xl font-bold">{stats.totalBids}</p>
+        <Card className="surface-card border-0 hover:shadow-glow transition-all duration-300">
+          <CardContent className="p-2 sm:p-3 md:p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="text-center sm:text-left">
+                <p className="text-xs text-muted-foreground mb-1">Done</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gradient-primary">{stats.completedTasks}</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-blue-600 mx-auto sm:mx-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Accepted Bids</p>
-                <p className="text-2xl font-bold">{stats.acceptedBids}</p>
+        <Card className="surface-card border-0 hover:shadow-glow transition-all duration-300">
+          <CardContent className="p-2 sm:p-3 md:p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="text-center sm:text-left">
+                <p className="text-xs text-muted-foreground mb-1">Sent</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gradient-primary">{stats.totalBids}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <Send className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-purple-600 mx-auto sm:mx-0" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Working On</p>
-                <p className="text-2xl font-bold">{stats.tasksWorking}</p>
+        <Card className="surface-card border-0 hover:shadow-glow transition-all duration-300">
+          <CardContent className="p-2 sm:p-3 md:p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="text-center sm:text-left">
+                <p className="text-xs text-muted-foreground mb-1">Won</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gradient-primary">{stats.acceptedBids}</p>
               </div>
-              <User className="h-8 w-8 text-indigo-600" />
+              <Award className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-green-600 mx-auto sm:mx-0" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="surface-card border-0 hover:shadow-glow transition-all duration-300">
+          <CardContent className="p-2 sm:p-3 md:p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="text-center sm:text-left">
+                <p className="text-xs text-muted-foreground mb-1">Work</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gradient-primary">{stats.tasksWorking}</p>
+              </div>
+              <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-indigo-600 mx-auto sm:mx-0" />
             </div>
           </CardContent>
         </Card>
@@ -963,31 +1009,6 @@ const UserDashboard: React.FC = () => {
                       {/* Simplified bid display with prominent buttons */}
                       {taskBids[task.id]?.length > 0 ? (
                         <>
-                          {/* Show chat button on the task card if any bid is assigned or accepted */}
-                          {(() => {
-                            const assignedBid = taskBids[task.id].find(bid => bid.status === 'accepted');
-                            if (assignedBid) {
-                              return (
-                                <div className="flex flex-col items-center mb-2">
-                                  <Button
-                                    size="sm"
-                                    variant="default"
-                                    className="w-full"
-                                    onClick={() => setChatTarget({
-                                      taskId: task.id,
-                                      userId: assignedBid.bidderId,
-                                      userName: assignedBid.bidderName || 'Bidder',
-                                      taskTitle: task.title
-                                    })}
-                                  >
-                                    <MessageCircle className="h-4 w-4 mr-1" />
-                                    Chat with Assigned Bidder
-                                  </Button>
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()}
                           <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
                             {taskBids[task.id].map((bid) => (
                               <div key={bid.id} className="border rounded-lg p-4 bg-white shadow">
@@ -1000,11 +1021,30 @@ const UserDashboard: React.FC = () => {
                                       {new Date(bid.createdAt).toLocaleDateString()}
                                     </p>
                                   </div>
-                                  <div className="flex items-center gap-2 ml-4">
+                                  <div className="flex flex-col items-end gap-2 ml-4">
                                     <Badge className={getStatusColor(bid.status)}>
                                       {getStatusIcon(bid.status)}
                                       <span className="ml-1">{bid.status}</span>
                                     </Badge>
+                                    {bid.status === 'accepted' && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="relative"
+                                        onClick={() => setChatTarget({
+                                          taskId: task.id,
+                                          userId: bid.bidderId,
+                                          userName: bid.bidderName || "Worker",
+                                          taskTitle: task.title
+                                        })}
+                                      >
+                                        <MessageCircle className="h-3 w-3 mr-1" />
+                                        Chat
+                                        {chatUnreadCounts[task.id] > 0 && (
+                                          <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></div>
+                                        )}
+                                      </Button>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -1034,9 +1074,9 @@ const UserDashboard: React.FC = () => {
                 <Button onClick={() => setShowPostTaskForm(true)}>Post Your First Task</Button>
       {/* Post Task Modal */}
       <Dialog open={showPostTaskForm} onOpenChange={setShowPostTaskForm}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Post a New Task</DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-semibold">Post a New Task</DialogTitle>
           </DialogHeader>
           <PostTaskForm 
             onClose={() => setShowPostTaskForm(false)}
@@ -1103,16 +1143,37 @@ const UserDashboard: React.FC = () => {
           {assignedTasks.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {assignedTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={{
-                    ...task,
-                    clientName: task.clientName || "Unknown client",
-                    clientRating: task.clientRating || 0,
-                    distance: undefined
-                  }}
-                  showBidButton={false}
-                />
+                <div key={task.id} className="relative">
+                  <TaskCard
+                    task={{
+                      ...task,
+                      clientName: task.clientName || "Unknown client",
+                      clientRating: task.clientRating || 0,
+                      distance: undefined
+                    }}
+                    showBidButton={false}
+                  />
+                  {/* Chat button with unread indicator */}
+                  <div className="mt-3 flex justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="relative"
+                      onClick={() => setChatTarget({
+                        taskId: task.id,
+                        userId: task.client_id,
+                        userName: task.clientName || "Client",
+                        taskTitle: task.title
+                      })}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Chat with Client
+                      {chatUnreadCounts[task.id] > 0 && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
@@ -1132,7 +1193,7 @@ const UserDashboard: React.FC = () => {
 
       {/* Review Dialog */}
       <Dialog open={showReviewForm} onOpenChange={setShowReviewForm}>
-        <DialogContent>
+        <DialogContent className="bg-white border border-gray-200 shadow-xl">
           <DialogHeader>
             <DialogTitle>Leave a Review</DialogTitle>
           </DialogHeader>
@@ -1150,7 +1211,7 @@ const UserDashboard: React.FC = () => {
 
       {/* Chat Window */}
       {chatTarget && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <ChatWindow
             taskId={chatTarget.taskId}
             receiverId={chatTarget.userId}

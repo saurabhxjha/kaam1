@@ -1,56 +1,68 @@
 import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Star, Users, CheckCircle, Clock, TrendingUp } from "lucide-react";
 
-const testimonials = [
-  {
-    name: "Amit S.",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    quote: "JodKaam made it super easy to find help for my home repairs. Highly recommended!",
-    rating: 5
-  },
-  {
-    name: "Priya R.",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    quote: "I posted a gig and got responses within minutes. The platform is secure and reliable.",
-    rating: 5
-  },
-  {
-    name: "Rahul K.",
-    avatar: "https://randomuser.me/api/portraits/men/65.jpg",
-    quote: "The Pro plan is totally worth it. Unlimited tasks and great support!",
-    rating: 5
-  }
-];
+const TrustElements: React.FC = () => {
+  const stats = [
+    {
+      icon: <Users className="h-6 w-6 text-blue-600" />,
+      value: "10,000+",
+      label: "Active Users",
+      gradient: "from-blue-500 to-blue-600"
+    },
+    {
+      icon: <CheckCircle className="h-6 w-6 text-green-600" />,
+      value: "25,000+",
+      label: "Tasks Completed",
+      gradient: "from-green-500 to-green-600"
+    },
+    {
+      icon: <Star className="h-6 w-6 text-yellow-600" />,
+      value: "4.8/5",
+      label: "Average Rating",
+      gradient: "from-yellow-500 to-yellow-600"
+    },
+    {
+      icon: <Clock className="h-6 w-6 text-purple-600" />,
+      value: "< 2 hrs",
+      label: "Average Response",
+      gradient: "from-purple-500 to-purple-600"
+    }
+  ];
 
-const TrustElements: React.FC = () => (
-  <section className="py-16 md:py-28 bg-white border-b border-gray-100">
-    <div className="max-w-4xl mx-auto text-center mb-12">
-      <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full font-semibold text-sm mb-4 shadow-sm">
-        <span className="inline-block w-4 h-4 bg-green-500 rounded-full mr-2"></span>
-        Verified & Secure
-      </div>
-      <h3 className="text-3xl md:text-4xl font-extrabold mb-2 text-gray-900">Trusted by 10,000+ users</h3>
-      <div className="flex justify-center gap-1 mb-4">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <span key={i} className="text-yellow-400 text-2xl">★</span>
-        ))}
-        <span className="ml-2 text-gray-600 text-base">5.0/5.0 (1,200+ ratings)</span>
-      </div>
-    </div>
-    <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
-      {testimonials.map((t, i) => (
-        <div key={i} className="bg-gray-50 rounded-2xl shadow-md p-8 flex-1 flex flex-col items-center max-w-xs mx-auto border border-gray-100">
-          <img src={t.avatar} alt={t.name} className="w-16 h-16 rounded-full mb-4 border-2 border-blue-200 shadow" />
-          <p className="italic text-gray-700 mb-3 text-lg">“{t.quote}”</p>
-          <div className="flex gap-1 mb-2">
-            {Array.from({ length: t.rating }).map((_, i) => (
-              <span key={i} className="text-yellow-400 text-lg">★</span>
-            ))}
+  return (
+    <section className="py-16 bg-gradient-to-r from-white via-blue-50/30 to-purple-50/30 border-b border-border/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full font-semibold text-sm shadow-soft mb-4">
+            <TrendingUp className="w-4 h-4" />
+            Trusted by thousands across India
           </div>
-          <span className="text-base font-semibold text-gray-800">{t.name}</span>
+          <h3 className="text-2xl font-bold text-gradient-primary">Growing Every Day</h3>
         </div>
-      ))}
-    </div>
-  </section>
-);
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+          {stats.map((stat, index) => (
+            <Card key={index} className="text-center border-0 surface-card hover:shadow-glow transition-all duration-300 transform hover:-translate-y-1 group">
+              <CardContent className="pt-6 pb-6">
+                <div className="flex justify-center mb-4">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-soft group-hover:shadow-glow transition-all duration-300`}>
+                    {React.cloneElement(stat.icon, { className: "h-6 w-6 text-white" })}
+                  </div>
+                </div>
+                <div className="text-2xl md:text-3xl font-bold text-gradient-primary mb-2 group-hover:scale-110 transition-transform duration-300">
+                  {stat.value}
+                </div>
+                <div className="text-sm font-medium text-muted-foreground">
+                  {stat.label}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 export default TrustElements;

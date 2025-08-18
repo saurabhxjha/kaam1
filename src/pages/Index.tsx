@@ -19,8 +19,8 @@ const Index: React.FC = () => {
     
     if (paymentStatus === 'success') {
       toast({
-        title: "Payment Successful! 🎉",
-        description: "Welcome to JodKaam Pro! Your subscription is now active.",
+        title: "Payment Successful!",
+        description: "Welcome to Sahayuk Pro! Your subscription is now active.",
       });
     } else if (paymentStatus === 'cancelled') {
       toast({
@@ -56,10 +56,10 @@ const Index: React.FC = () => {
     mainEntity: [
       {
         "@type": "Question",
-        name: "What is JodKaam?",
+        name: "What is Sahayuk?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "JodKaam is a hyperlocal platform to post small tasks and find nearby gig workers to complete them quickly.",
+          text: "Sahayuk is a hyperlocal platform to post small tasks and find nearby gig workers to complete them quickly.",
         },
       },
       {

@@ -119,10 +119,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       }
 
       console.log('Loaded messages:', data);
-  setMessages(data || []);
+      setMessages(data || []);
       
-      // Mark messages as read
+      // Mark messages as read when chat opens
       if (data && data.length > 0) {
+        console.log('📖 Marking messages as read for task:', taskId);
         await markMessagesAsRead();
       }
     } catch (error) {
@@ -137,12 +138,19 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     if (!user) return;
 
     try {
-      await supabase
+      const { data, error } = await supabase
         .from('chat_messages')
         .update({ is_read: true })
         .eq('task_id', taskId)
         .eq('receiver_id', user.id)
-        .eq('is_read', false);
+        .eq('is_read', false)
+        .select();
+        
+      if (error) {
+        console.error('Error marking messages as read:', error);
+      } else {
+        console.log('✅ Marked messages as read:', data?.length || 0);
+      }
     } catch (error) {
       console.error('Error marking messages as read:', error);
     }
@@ -224,6 +232,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         .from('chat_messages')
         .insert(messageData)
         .select();
+        
+      console.log('💬 Message insert result:', { data, error });
 
       if (error) {
         console.error('=== SUPABASE INSERT ERROR ===');

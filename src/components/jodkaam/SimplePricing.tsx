@@ -52,9 +52,9 @@ function SimplifiedPricing() {
     }
     try {
       setLoading(true);
-      console.log('🚀 Starting payment process...');
+      console.log(' Starting payment process...');
 
-      console.log('📞 Calling create-checkout function...');
+      console.log('Calling create-checkout function...');
 
       // Create Razorpay order via Supabase function (no auth required)
       const { data, error } = await supabase.functions.invoke('create-checkout', {
@@ -64,23 +64,23 @@ function SimplifiedPricing() {
         },
       });
 
-      console.log('📋 Supabase function response:', { data, error });
+      console.log('Supabase function response:', { data, error });
 
       if (error) {
-        console.error('❌ Supabase function error:', error);
+        console.error('Supabase function error:', error);
         throw new Error(`Server Error: ${error.message || 'Function call failed'}`);
       }
 
       if (!data?.orderId) {
-        console.error('❌ No order ID received:', data);
+        console.error('No order ID received:', data);
         throw new Error('Invalid response from payment server');
       }
 
-      console.log('✅ Order created successfully:', data.orderId);
+      console.log('Order created successfully:', data.orderId);
       
       // Check if Razorpay is loaded
       if (!window.Razorpay) {
-        console.log('📜 Loading Razorpay script...');
+        console.log('Loading Razorpay script...');
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
         script.async = true;
@@ -106,7 +106,7 @@ function SimplifiedPricing() {
         key: razorpayKey,
         amount: 199 * 100, // Amount in paise
         currency: 'INR',
-        name: 'JodKaam',
+        name: 'Sahayuk',
         description: 'Pro Subscription - ₹199/month',
         order_id: data.orderId,
         handler: async function (response: any) {
@@ -169,16 +169,16 @@ function SimplifiedPricing() {
           }
           
           toast({
-            title: "Payment Successful! 🎉",
-            description: "Welcome to JodKaam Pro! Your subscription is now active.",
+            title: "Payment Successful!",
+            description: "Welcome to Sahayuk Pro! Your subscription is now active.",
           });
           
           // Redirect to success page
           window.location.href = '/?payment=success';
         },
         prefill: {
-          name: 'JodKaam User',
-          email: 'user@jodkaam.com',
+          name: 'Sahayuk User',
+          email: 'user@sahayuk.com',
           contact: ''
         },
         theme: {
@@ -229,7 +229,7 @@ function SimplifiedPricing() {
       <div className="w-full max-w-4xl mx-auto px-4">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 text-center text-gray-900">Simple Pricing</h2>
         <p className="text-lg md:text-xl text-gray-600 mb-12 text-center mx-auto max-w-xl">
-          Start free. Upgrade to Pro for unlimited posting and wider visibility.
+                  Upgrade to Pro for unlimited posting and wider visibility.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <Card className="bg-white rounded-2xl shadow-md border border-gray-100">
